@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { type WMController } from "$lib/controllers/wmController";
+	import { max } from "$lib/utils";
 
     let { controller }: {
         controller: WMController | null,
@@ -18,9 +19,6 @@
         enable: value => enabled = value,
         showText: value => textMessage = value
     });
-
-    const reduceWith = (vals: number[], func: (p: number, c: number) => number) => vals.length ? vals.reduce(func) : 0;
-    const max = (vals: number[]) => reduceWith(vals, (p, c) => Math.max(p, c));
 
     let textMessage: string = $state("");
     let enabled: boolean = $state(true);

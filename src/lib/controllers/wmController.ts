@@ -56,7 +56,7 @@ export class WMGridController implements WMController {
             <Hilite>{ type:"hilite", id: o, on: true},
             <Sleep>{ type:"sleep", timeMs: 1000},
             <Hilite>{ type:"hilite", id: o, on: false},
-            <Sleep>{ type:"sleep", timeMs: 1000},
+            <Sleep>{ type:"sleep", timeMs: 500},
         ]).flat();
 
         return (<Cmd[]>[

@@ -65,9 +65,9 @@ export class WMGridController implements WMController {
         .concat(forItems)
         .concat([
             <Text>{ type: "text", value: "Your turn" },
+            <Enable>{ type: "enable", value: true },
             <Sleep>{ type:"sleep", timeMs: 1000},
             <Text>{ type: "text", value: "" },
-            <Enable>{ type: "enable", value: true },
         ]);
     }
 

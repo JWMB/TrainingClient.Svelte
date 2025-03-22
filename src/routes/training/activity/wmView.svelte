@@ -7,21 +7,23 @@
 
     function wmController() { return controller as WMController; }
     
+    // very backwards - better if controller can take a view as argument
+    // but how can we type the view? how to use/implement and interface in a svelte component..?
     wmController()?.registerView({
-        hilite: (id: number, on: boolean) => getItem(id).hilite = on,
-        add: (id: number, x: number, y: number) => items.push({
+        hilite: (id, on) => getItem(id).hilite = on,
+        add: (id, x, y) => items.push({
             id: id, x, y,
             hilite: false
             }),
-        enable: (value: boolean) => enabled = value,
-        showText: (value: string) => textMessage = value
+        enable: value => enabled = value,
+        showText: value => textMessage = value
     });
 
     const reduceWith = (vals: number[], func: (p: number, c: number) => number) => vals.length ? vals.reduce(func) : 0;
     const max = (vals: number[]) => reduceWith(vals, (p, c) => Math.max(p, c));
 
     let textMessage: string = $state("");
-    let enabled: boolean = true;
+    let enabled: boolean = $state(true);
 
     const items: {id: number, hilite: boolean, x: number, y: number }[] = $state([]);
     let gridSize = $derived({ 
@@ -35,7 +37,7 @@
         return item;
     }
     function userHilite(id: number, hilite: boolean) {
-        if (!enabled) return;
+        // if (!enabled) return;
         getItem(id).hilite = hilite;
     }
     function onClick(item: {id: number}) {
@@ -46,15 +48,16 @@
 </script>
 
 <div>
-    <svg viewBox="0 0 100 100" height="300px">
+    <svg viewBox="0 0 100 100" height="300px" style="filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7))">
         {#each items as item}
             <circle 
                 onmouseenter={e => userHilite(item.id, true)} onmouseleave={e => userHilite(item.id, false)}
                 onclick={e => onClick(item)}
                 cx="{getCX(item.x)}%" cy="{getCY(item.y)}%" r="{0.5 * 100 / (gridSize.x + 2)}%"
-                fill={item.hilite ? "red" : "blue"} stroke="black" stroke-width="1"
+                fill={item.hilite ? (enabled ? "red" : "cyan") : "blue"} stroke="black" stroke-width="1"
             />
         {/each}
+        <rect fill="rgba(0,100,100,0.0)" width="100%" height="100%" visibility={enabled ? "hidden" : ""}></rect>
     </svg>
 </div>
 

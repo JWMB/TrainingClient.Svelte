@@ -69,6 +69,7 @@ export class ApiWrapper {
 	async enterGame(gameId: string) { return await this.call(() =>this.client.enterGame(gameId)); }
 	async enterPhase() { return await this.call(() => this.client.enterPhase(null)); }
 	async nextStimuli() { return await this.call(() => this.client.nextStimuli()); }
+	async registerResponse(response: any) { return await this.call(() => this.client.response(response)); }
 
 	protected async call<T>(someCall: () => T | undefined) {
 		return await someCall();

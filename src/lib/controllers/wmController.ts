@@ -1,5 +1,6 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
 import type { IStimuli } from "$lib/nswagclient";
+import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
 
 export interface GameController {
     init(onFinished: () => void): Promise<void>;
@@ -8,8 +9,6 @@ export interface GameController {
 }
 
 export interface WMController extends GameController {
-    // createItems(): WMItem[];
-    // getSequence(): Cmd[];
     registerView(functions: WmViewFunctions): void;
     click(id: number): void;
     onResponse?: (id: number) => Promise<void>;
@@ -21,22 +20,6 @@ export interface WmViewFunctions {
     showText(value: string): void;
 }
 
-export interface Cmd {
-    type: string;
-}
-export interface Sleep extends Cmd {
-    timeMs: number;
-}
-export interface Hilite extends Cmd {
-    id: number;
-    on: boolean;
-}
-export interface Enable extends Cmd {
-    value: boolean;
-}
-export interface Text extends Cmd {
-    value: string;
-}
 
 export interface PresentWM {
     hilite(id: number, on: boolean): void;
@@ -139,8 +122,6 @@ export class WMGridController implements WMController {
     }
     async present(stimuli: IStimuli) {
         this.itemSequence = (<any>stimuli).sequence as number[]; // TODO: typing
-        // this.userResponse = [];
-        // console.log("asd", this.itemSequence);
         await this.executeSequence(this.getSequence());
     }
 
@@ -148,10 +129,8 @@ export class WMGridController implements WMController {
     registerView(functions: WmViewFunctions): void {
         this.functions = functions;
     }
-    // private userResponse: number[] = [];
+
     click(id: number) {
-        // this.userResponse.push(id);
-        
         this.functions?.enable(false);
         this.executeSequence(this.getResetSequence()).then(() => {
             this.api.registerResponse(id).then(analysis => {
@@ -172,9 +151,6 @@ export class WMGridController implements WMController {
                 }
             });
         });
-
-        // if (this.onResponse)
-        //     this.onResponse(id);
     }
     
     onResponse?: ((id: number) => Promise<void>) | undefined;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type WMController } from "./wm";
+	import { type WMController } from "$lib/controllers/wmController";
 
     let { controller }: {
         controller: WMController | null,

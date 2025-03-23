@@ -1,11 +1,12 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
-import type { IStimuli } from "$lib/nswagclient";
+import type { CommandApi } from "$lib/commandApis/commandApi";
+import type { IResponseAnalysisResult, IStimuli } from "$lib/nswagclient";
 import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
 
 export interface GameController {
     init(onFinished: () => void): Promise<void>;
     start(): Promise<boolean>;
-    present(stimuli: IStimuli): Promise<void>;   
+    // present(stimuli: IStimuli): Promise<void>;   
 }
 
 export interface WMController extends GameController {
@@ -21,14 +22,10 @@ export interface WmViewFunctions {
 }
 
 
-export interface PresentWM {
-    hilite(id: number, on: boolean): void;
-}
-
 export class WMGridController implements WMController {
     private itemSequence: number[] = [];
 
-    constructor(private size: {x: number, y: number}, private api: ApiWrapper) {
+    constructor(private size: {x: number, y: number}, private api: CommandApi) {
     }
 
     createItems() {
@@ -36,39 +33,6 @@ export class WMGridController implements WMController {
             .map((_, x) => Array.from(Array(this.size.y))
                 .map((_, y) => ({ x, y, id: x + y * this.size.x })))
         .flat();
-    }
-
-    getResetSequence(): Cmd[] {
-        return this.createItems().map(o => <Hilite>{ type:"hilite", id: o.id, on:false});
-    }
-    getBlinkSequence(id: number): Cmd[] {
-        return Array.from(Array(4)).map(_ => [
-            <Hilite>{ type:"hilite", id: id, on: true},
-            <Sleep>{ type:"sleep", timeMs: 100},
-            <Hilite>{ type:"hilite", id: id, on: false},
-            <Sleep>{ type:"sleep", timeMs: 100},
-        ]).flat().concat([
-            <Sleep>{ type:"sleep", timeMs: 1000}
-        ]);
-    }
-    getSequence(): Cmd[] {
-        const forItems = this.itemSequence.map(o => [
-            <Hilite>{ type:"hilite", id: o, on: true},
-            <Sleep>{ type:"sleep", timeMs: 1000},
-            <Hilite>{ type:"hilite", id: o, on: false},
-            <Sleep>{ type:"sleep", timeMs: 500},
-        ]).flat();
-
-        return (<Cmd[]>[
-            <Enable>{ type: "enable", value: false },
-        ])
-        .concat(forItems)
-        .concat([
-            <Text>{ type: "text", value: "Your turn" },
-            <Enable>{ type: "enable", value: true },
-            <Sleep>{ type:"sleep", timeMs: 1000},
-            <Text>{ type: "text", value: "" },
-        ]);
     }
 
     private onFinished: (() => void) | null = null;
@@ -80,13 +44,13 @@ export class WMGridController implements WMController {
         }
     }
     async start() {
-        const stim = await this.api.nextStimuli();
+        const stim = await this.api.getStimulus();
         if (!stim) {
             if (this.onFinished)
                 this.onFinished();
             return false;
         }
-        await this.present(stim);
+        await this.executeSequence(stim.commands);
         return true;
     }
 
@@ -120,10 +84,6 @@ export class WMGridController implements WMController {
             })
         }
     }
-    async present(stimuli: IStimuli) {
-        this.itemSequence = (<any>stimuli).sequence as number[]; // TODO: typing
-        await this.executeSequence(this.getSequence());
-    }
 
     private functions?: WmViewFunctions;
     registerView(functions: WmViewFunctions): void {
@@ -132,20 +92,13 @@ export class WMGridController implements WMController {
 
     click(id: number) {
         this.functions?.enable(false);
-        this.executeSequence(this.getResetSequence()).then(() => {
-            this.api.registerResponse(id).then(analysis => {
-                if (!analysis) throw new Error("No analysis received");
-                // console.log("analysis", analysis);
+        for (let item of this.createItems())
+            this.functions?.hilite(item.id, false);
 
-                if (analysis.isFinished) {
-                    if (!analysis.isCorrect) {
-                        // TODO: server response should contain expected item? 
-                        this.executeSequence(this.getBlinkSequence(1)).then(() => {
-                            this.start();
-                        });
-                    } else {
-                        this.start();
-                    }
+        this.api.postResponse(id).then(analysis => {
+            this.executeSequence(analysis.commands).then(() => {
+                if (analysis.analysis.isFinished) {
+                    this.start();
                 } else {
                     this.functions?.enable(true);
                 }

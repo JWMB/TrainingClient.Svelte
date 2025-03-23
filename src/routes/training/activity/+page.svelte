@@ -3,6 +3,7 @@
 	import WmView from "./wmView.svelte";
 	import { ServiceProvider } from "$lib/serviceProvider";
 	import { WMGridController, type GameController } from "$lib/controllers/wmController";
+	import { CommandApiProxyWM } from "$lib/commandApis/commandApiProxyWM";
 
 	// let component: Component | null = null;
 	let api = ServiceProvider.instance.apiWrapper;
@@ -10,7 +11,7 @@
 	// let wmComponent: WmView;
 	let controller: GameController | null;
 	//let wm: WMController | null = $state(null);
-	let wm = new WMGridController({x: 4, y: 4}, api);
+	let wm = new WMGridController({x: 4, y: 4}, new CommandApiProxyWM(api));
 
 	onMount(async () => {
 		const sp = new URLSearchParams(window.location.search);

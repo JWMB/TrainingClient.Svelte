@@ -1,6 +1,4 @@
-import type { ApiWrapper } from "$lib/apiWrapper";
 import type { CommandApi } from "$lib/commandApis/commandApi";
-import type { IResponseAnalysisResult, IStimuli } from "$lib/nswagclient";
 import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
 
 export interface GameController {
@@ -19,12 +17,11 @@ export interface WmViewFunctions {
     add(id: number, x: number, y: number): void;
     enable(value: boolean): void;
     showText(value: string): void;
+    updateLevel(current: number, top: number): void;
+    updateProgress(target: number, fail: number, end: number): void;
 }
 
-
 export class WMGridController implements WMController {
-    private itemSequence: number[] = [];
-
     constructor(private size: {x: number, y: number}, private api: CommandApi) {
     }
 
@@ -95,9 +92,13 @@ export class WMGridController implements WMController {
         for (let item of this.createItems())
             this.functions?.hilite(item.id, false);
 
-        this.api.postResponse(id).then(analysis => {
-            this.executeSequence(analysis.commands).then(() => {
-                if (analysis.analysis.isFinished) {
+        this.api.postResponse(id).then(result => {
+            if (result.result.analysis?.isFinished) {
+                this.functions?.updateLevel(result.result.meta.level.current, result.result.meta.level.top);
+                this.functions?.updateProgress(result.result.meta.progress.targetPercentage, result.result.meta.progress.failPercentage, result.result.meta.progress.endPercentage);
+            }
+            this.executeSequence(result.commands || []).then(() => {
+                if (result.result.analysis?.isFinished) {
                     this.start();
                 } else {
                     this.functions?.enable(true);

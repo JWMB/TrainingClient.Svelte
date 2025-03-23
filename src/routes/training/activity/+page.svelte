@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, type Component } from "svelte";
+	import { onMount } from "svelte";
 	import WmView from "./wmView.svelte";
 	import { ServiceProvider } from "$lib/serviceProvider";
 	import { WMGridController, type GameController } from "$lib/controllers/wmController";
@@ -19,9 +19,12 @@
 
 		console.log("gameId", gameId);
 		const conf = await api.enterGame(gameId); // console.log('conf', conf);
+		// TODO: is it here we want to find out which presentation type is suggested from the training settings?
+		// right now WmView is hard-coded
+		// maybe we want to know already on menu (e.g. different icons depending on presentation type)
 		if (gameId == "WM_grid") {
 			controller = wm;
-			await wm.init(() => {alert("Finished - show summary and return to menu")});
+			await wm.init(() => { alert("Finished - show summary and return to menu")});
 		}
 		const enterPhaseResult = await api.enterPhase(); // console.log("ep", enterPhaseResult);
 
@@ -30,7 +33,6 @@
 		} catch (err) {
 
 		}
-
 	});
 
 </script>

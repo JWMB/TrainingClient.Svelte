@@ -8,1300 +8,1616 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-    export class ApiClient {
-        private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-        private baseUrl: string;
-        protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-    
-        constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-            this.http = http ? http : window as any;
-            this.baseUrl = baseUrl ?? "https://localhost:7206";
-        }
-    
-        /**
-         * @param username (optional) 
-         * @return OK
-         */
-        login(username: string | undefined): Promise<LoginResult> {
-            let url_ = this.baseUrl + "/UserSession/login?";
-            if (username === null)
-                throw new Error("The parameter 'username' cannot be null.");
-            else if (username !== undefined)
-                url_ += "username=" + encodeURIComponent("" + username) + "&";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processLogin(_response);
+export class ApiClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "https://localhost:7206";
+    }
+
+    /**
+     * @param username (optional) 
+     * @return OK
+     */
+    login(username: string | undefined): Promise<LoginResult> {
+        let url_ = this.baseUrl + "/UserSession/login?";
+        if (username === null)
+            throw new Error("The parameter 'username' cannot be null.");
+        else if (username !== undefined)
+            url_ += "username=" + encodeURIComponent("" + username) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "text/plain"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLogin(_response);
+        });
+    }
+
+    protected processLogin(response: Response): Promise<LoginResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LoginResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processLogin(response: Response): Promise<LoginResult> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = LoginResult.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<LoginResult>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    availableGames(): Promise<GameDefinition[]> {
+        let url_ = this.baseUrl + "/UserSession/availableGames";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
             }
-            return Promise.resolve<LoginResult>(null as any);
-        }
-    
-        /**
-         * @return OK
-         */
-        availableGames(): Promise<GameDefinition[]> {
-            let url_ = this.baseUrl + "/UserSession/availableGames";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "GET",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processAvailableGames(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAvailableGames(_response);
+        });
+    }
+
+    protected processAvailableGames(response: Response): Promise<GameDefinition[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GameDefinition.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processAvailableGames(response: Response): Promise<GameDefinition[]> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                if (Array.isArray(resultData200)) {
-                    result200 = [] as any;
-                    for (let item of resultData200)
-                        result200!.push(GameDefinition.fromJS(item));
-                }
-                else {
-                    result200 = <any>null;
-                }
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<GameDefinition[]>(null as any);
+    }
+
+    /**
+     * @param gameId (optional) 
+     * @return OK
+     */
+    enterGame(gameId: string | undefined): Promise<EnterGameResult> {
+        let url_ = this.baseUrl + "/UserSession/enterGame?";
+        if (gameId === null)
+            throw new Error("The parameter 'gameId' cannot be null.");
+        else if (gameId !== undefined)
+            url_ += "gameId=" + encodeURIComponent("" + gameId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "text/plain"
             }
-            return Promise.resolve<GameDefinition[]>(null as any);
-        }
-    
-        /**
-         * @param gameId (optional) 
-         * @return OK
-         */
-        enterGame(gameId: string | undefined): Promise<EnterGameResult> {
-            let url_ = this.baseUrl + "/UserSession/enterGame?";
-            if (gameId === null)
-                throw new Error("The parameter 'gameId' cannot be null.");
-            else if (gameId !== undefined)
-                url_ += "gameId=" + encodeURIComponent("" + gameId) + "&";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "POST",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processEnterGame(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processEnterGame(_response);
+        });
+    }
+
+    protected processEnterGame(response: Response): Promise<EnterGameResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EnterGameResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processEnterGame(response: Response): Promise<EnterGameResult> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = EnterGameResult.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<EnterGameResult>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    configurables(): Promise<string> {
+        let url_ = this.baseUrl + "/UserSession/configurables";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/openapi+json"
             }
-            return Promise.resolve<EnterGameResult>(null as any);
-        }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfigurables(_response);
+        });
+    }
+
+    protected processConfigurables(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
     
-        /**
-         * @return OK
-         */
-        configurables(): Promise<string> {
-            let url_ = this.baseUrl + "/UserSession/configurables";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "GET",
-                headers: {
-                    "Accept": "application/openapi+json"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processConfigurables(_response);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processConfigurables(response: Response): Promise<string> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                    result200 = resultData200 !== undefined ? resultData200 : <any>null;
-        
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    enterPhase(body: any | null | undefined): Promise<EnterPhaseResult> {
+        let url_ = this.baseUrl + "/UserSession/enterPhase";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
             }
-            return Promise.resolve<string>(null as any);
-        }
-    
-        /**
-         * @param body (optional) 
-         * @return OK
-         */
-        enterPhase(body: any | null | undefined): Promise<EnterPhaseResult> {
-            let url_ = this.baseUrl + "/UserSession/enterPhase";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            const content_ = JSON.stringify(body);
-    
-            let options_: RequestInit = {
-                body: content_,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processEnterPhase(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processEnterPhase(_response);
+        });
+    }
+
+    protected processEnterPhase(response: Response): Promise<EnterPhaseResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EnterPhaseResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processEnterPhase(response: Response): Promise<EnterPhaseResult> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = EnterPhaseResult.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<EnterPhaseResult>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    nextStimuli(): Promise<IStimuli> {
+        let url_ = this.baseUrl + "/UserSession/nextStimuli";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
             }
-            return Promise.resolve<EnterPhaseResult>(null as any);
-        }
-    
-        /**
-         * @return OK
-         */
-        nextStimuli(): Promise<IStimuli> {
-            let url_ = this.baseUrl + "/UserSession/nextStimuli";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "GET",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processNextStimuli(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processNextStimuli(_response);
+        });
+    }
+
+    protected processNextStimuli(response: Response): Promise<IStimuli> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = IStimuli.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processNextStimuli(response: Response): Promise<IStimuli> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = IStimuli.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<IStimuli>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    nextStimuliAndSolution(): Promise<StimuliAndSolution> {
+        let url_ = this.baseUrl + "/UserSession/nextStimuliAndSolution";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
             }
-            return Promise.resolve<IStimuli>(null as any);
-        }
-    
-        /**
-         * @return OK
-         */
-        nextStimuliAndSolution(): Promise<StimuliAndSolution> {
-            let url_ = this.baseUrl + "/UserSession/nextStimuliAndSolution";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "GET",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processNextStimuliAndSolution(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processNextStimuliAndSolution(_response);
+        });
+    }
+
+    protected processNextStimuliAndSolution(response: Response): Promise<StimuliAndSolution> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = StimuliAndSolution.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processNextStimuliAndSolution(response: Response): Promise<StimuliAndSolution> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = StimuliAndSolution.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<StimuliAndSolution>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    solution(): Promise<ISolution2> {
+        let url_ = this.baseUrl + "/UserSession/solution";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "text/plain"
             }
-            return Promise.resolve<StimuliAndSolution>(null as any);
-        }
-    
-        /**
-         * @return OK
-         */
-        solution(): Promise<ISolution2> {
-            let url_ = this.baseUrl + "/UserSession/solution";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            let options_: RequestInit = {
-                method: "GET",
-                headers: {
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processSolution(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSolution(_response);
+        });
+    }
+
+    protected processSolution(response: Response): Promise<ISolution2> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ISolution2.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processSolution(response: Response): Promise<ISolution2> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = ISolution2.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<ISolution2>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    response(body: any | null | undefined): Promise<IResponseAnalysisResult> {
+        let url_ = this.baseUrl + "/UserSession/response";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
             }
-            return Promise.resolve<ISolution2>(null as any);
-        }
-    
-        /**
-         * @param body (optional) 
-         * @return OK
-         */
-        response(body: any | null | undefined): Promise<IResponseAnalysisResult> {
-            let url_ = this.baseUrl + "/UserSession/response";
-            url_ = url_.replace(/[?&]$/, "");
-    
-            const content_ = JSON.stringify(body);
-    
-            let options_: RequestInit = {
-                body: content_,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "text/plain"
-                }
-            };
-    
-            return this.http.fetch(url_, options_).then((_response: Response) => {
-                return this.processResponse(_response);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResponse(_response);
+        });
+    }
+
+    protected processResponse(response: Response): Promise<IResponseAnalysisResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = IResponseAnalysisResult.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-    
-        protected processResponse(response: Response): Promise<IResponseAnalysisResult> {
-            const status = response.status;
-            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-            if (status === 200) {
-                return response.text().then((_responseText) => {
-                let result200: any = null;
-                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = IResponseAnalysisResult.fromJS(resultData200);
-                return result200;
-                });
-            } else if (status !== 200 && status !== 204) {
-                return response.text().then((_responseText) => {
-                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-                });
+        return Promise.resolve<IResponseAnalysisResult>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    responseExtended(body: any | null | undefined): Promise<ResponseResultExtended> {
+        let url_ = this.baseUrl + "/UserSession/response-extended";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "text/plain"
             }
-            return Promise.resolve<IResponseAnalysisResult>(null as any);
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResponseExtended(_response);
+        });
+    }
+
+    protected processResponseExtended(response: Response): Promise<ResponseResultExtended> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ResponseResultExtended.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ResponseResultExtended>(null as any);
+    }
+}
+
+export class EndCriteriaData implements IEndCriteriaData {
+
+    [key: string]: any;
+
+    constructor(data?: IEndCriteriaData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
         }
     }
-    
-    export class EndCriteriaData implements IEndCriteriaData {
-    
-        [key: string]: any;
-    
-        constructor(data?: IEndCriteriaData) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-            }
-        }
-    
-        static fromJS(data: any): EndCriteriaData {
-            data = typeof data === 'object' ? data : {};
-            let result = new EndCriteriaData();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            return data;
         }
     }
-    
-    export interface IEndCriteriaData {
-    
-        [key: string]: any;
+
+    static fromJS(data: any): EndCriteriaData {
+        data = typeof data === 'object' ? data : {};
+        let result = new EndCriteriaData();
+        result.init(data);
+        return result;
     }
-    
-    export class EnterGameResult implements IEnterGameResult {
-        configurable?: Type | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IEnterGameResult) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
-            }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.configurable = _data["configurable"] ? Type.fromJS(_data["configurable"]) : <any>undefined;
+        return data;
+    }
+}
+
+export interface IEndCriteriaData {
+
+    [key: string]: any;
+}
+
+export class EnterGameResult implements IEnterGameResult {
+    configurable?: Type | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IEnterGameResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
-        }
-    
-        static fromJS(data: any): EnterGameResult {
-            data = typeof data === 'object' ? data : {};
-            let result = new EnterGameResult();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["configurable"] = this.configurable ? this.configurable.toJSON() : <any>undefined;
-            return data;
         }
     }
-    
-    export interface IEnterGameResult {
-        configurable?: Type | undefined;
-    
-        [key: string]: any;
-    }
-    
-    export class EnterPhaseResult implements IEnterPhaseResult {
-        gameRuns!: GameRunStats[];
-    
-        [key: string]: any;
-    
-        constructor(data?: IEnterPhaseResult) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-            if (!data) {
-                this.gameRuns = [];
-            }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                if (Array.isArray(_data["gameRuns"])) {
-                    this.gameRuns = [] as any;
-                    for (let item of _data["gameRuns"])
-                        this.gameRuns!.push(GameRunStats.fromJS(item));
-                }
-            }
-        }
-    
-        static fromJS(data: any): EnterPhaseResult {
-            data = typeof data === 'object' ? data : {};
-            let result = new EnterPhaseResult();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            if (Array.isArray(this.gameRuns)) {
-                data["gameRuns"] = [];
-                for (let item of this.gameRuns)
-                    data["gameRuns"].push(item.toJSON());
-            }
-            return data;
+            this.configurable = _data["configurable"] ? Type.fromJS(_data["configurable"]) : <any>undefined;
         }
     }
-    
-    export interface IEnterPhaseResult {
-        gameRuns: GameRunStats[];
-    
-        [key: string]: any;
+
+    static fromJS(data: any): EnterGameResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new EnterGameResult();
+        result.init(data);
+        return result;
     }
-    
-    export class GameDefinition implements IGameDefinition {
-        invisible?: boolean;
-        id?: string;
-        title?: string;
-        phases?: PhaseDefinition[];
-        progVisualizer?: string;
-        progVisualizerData?: any;
-    
-        [key: string]: any;
-    
-        constructor(data?: IGameDefinition) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["configurable"] = this.configurable ? this.configurable.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IEnterGameResult {
+    configurable?: Type | undefined;
+
+    [key: string]: any;
+}
+
+export class EnterPhaseResult implements IEnterPhaseResult {
+    gameRuns!: GameRunStats[];
+
+    [key: string]: any;
+
+    constructor(data?: IEnterPhaseResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.invisible = _data["invisible"];
-                this.id = _data["id"];
-                this.title = _data["title"];
-                if (Array.isArray(_data["phases"])) {
-                    this.phases = [] as any;
-                    for (let item of _data["phases"])
-                        this.phases!.push(PhaseDefinition.fromJS(item));
-                }
-                this.progVisualizer = _data["progVisualizer"];
-                this.progVisualizerData = _data["progVisualizerData"];
-            }
-        }
-    
-        static fromJS(data: any): GameDefinition {
-            data = typeof data === 'object' ? data : {};
-            let result = new GameDefinition();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["invisible"] = this.invisible;
-            data["id"] = this.id;
-            data["title"] = this.title;
-            if (Array.isArray(this.phases)) {
-                data["phases"] = [];
-                for (let item of this.phases)
-                    data["phases"].push(item.toJSON());
-            }
-            data["progVisualizer"] = this.progVisualizer;
-            data["progVisualizerData"] = this.progVisualizerData;
-            return data;
+        if (!data) {
+            this.gameRuns = [];
         }
     }
-    
-    export interface IGameDefinition {
-        invisible?: boolean;
-        id?: string;
-        title?: string;
-        phases?: PhaseDefinition[];
-        progVisualizer?: string;
-        progVisualizerData?: any;
-    
-        [key: string]: any;
-    }
-    
-    export class GameRunStats implements IGameRunStats {
-        gameId?: string;
-        lastLevel?: number;
-        highestLevel?: number;
-        won?: boolean;
-        customData?: JsonDocument | undefined;
-        trainingTime?: number;
-        trainingDay?: number;
-        started_at?: number;
-        cancelled?: boolean;
-    
-        [key: string]: any;
-    
-        constructor(data?: IGameRunStats) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.gameId = _data["gameId"];
-                this.lastLevel = _data["lastLevel"];
-                this.highestLevel = _data["highestLevel"];
-                this.won = _data["won"];
-                this.customData = _data["customData"] ? JsonDocument.fromJS(_data["customData"]) : <any>undefined;
-                this.trainingTime = _data["trainingTime"];
-                this.trainingDay = _data["trainingDay"];
-                this.started_at = _data["started_at"];
-                this.cancelled = _data["cancelled"];
+            if (Array.isArray(_data["gameRuns"])) {
+                this.gameRuns = [] as any;
+                for (let item of _data["gameRuns"])
+                    this.gameRuns!.push(GameRunStats.fromJS(item));
             }
-        }
-    
-        static fromJS(data: any): GameRunStats {
-            data = typeof data === 'object' ? data : {};
-            let result = new GameRunStats();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["gameId"] = this.gameId;
-            data["lastLevel"] = this.lastLevel;
-            data["highestLevel"] = this.highestLevel;
-            data["won"] = this.won;
-            data["customData"] = this.customData ? this.customData.toJSON() : <any>undefined;
-            data["trainingTime"] = this.trainingTime;
-            data["trainingDay"] = this.trainingDay;
-            data["started_at"] = this.started_at;
-            data["cancelled"] = this.cancelled;
-            return data;
         }
     }
-    
-    export interface IGameRunStats {
-        gameId?: string;
-        lastLevel?: number;
-        highestLevel?: number;
-        won?: boolean;
-        customData?: JsonDocument | undefined;
-        trainingTime?: number;
-        trainingDay?: number;
-        started_at?: number;
-        cancelled?: boolean;
-    
-        [key: string]: any;
+
+    static fromJS(data: any): EnterPhaseResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new EnterPhaseResult();
+        result.init(data);
+        return result;
     }
-    
-    export class IResponseAnalysisResult implements IIResponseAnalysisResult {
-        isFinished?: boolean;
-        isCorrect?: boolean | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IIResponseAnalysisResult) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
-            }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.isFinished = _data["isFinished"];
-                this.isCorrect = _data["isCorrect"];
-            }
+        if (Array.isArray(this.gameRuns)) {
+            data["gameRuns"] = [];
+            for (let item of this.gameRuns)
+                data["gameRuns"].push(item.toJSON());
         }
-    
-        static fromJS(data: any): IResponseAnalysisResult {
-            data = typeof data === 'object' ? data : {};
-            let result = new IResponseAnalysisResult();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
+        return data;
+    }
+}
+
+export interface IEnterPhaseResult {
+    gameRuns: GameRunStats[];
+
+    [key: string]: any;
+}
+
+export class GameDefinition implements IGameDefinition {
+    invisible?: boolean;
+    id?: string;
+    title?: string;
+    phases?: PhaseDefinition[];
+    progVisualizer?: string;
+    progVisualizerData?: any;
+
+    [key: string]: any;
+
+    constructor(data?: IGameDefinition) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
-            data["isFinished"] = this.isFinished;
-            data["isCorrect"] = this.isCorrect;
-            return data;
         }
     }
-    
-    export interface IIResponseAnalysisResult {
-        isFinished?: boolean;
-        isCorrect?: boolean | undefined;
-    
-        [key: string]: any;
-    }
-    
-    export class ISolution implements IISolution {
-        values?: any[] | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IISolution) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                if (Array.isArray(_data["values"])) {
-                    this.values = [] as any;
-                    for (let item of _data["values"])
-                        this.values!.push(item);
-                }
+            this.invisible = _data["invisible"];
+            this.id = _data["id"];
+            this.title = _data["title"];
+            if (Array.isArray(_data["phases"])) {
+                this.phases = [] as any;
+                for (let item of _data["phases"])
+                    this.phases!.push(PhaseDefinition.fromJS(item));
             }
-        }
-    
-        static fromJS(data: any): ISolution {
-            data = typeof data === 'object' ? data : {};
-            let result = new ISolution();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            if (Array.isArray(this.values)) {
-                data["values"] = [];
-                for (let item of this.values)
-                    data["values"].push(item);
-            }
-            return data;
+            this.progVisualizer = _data["progVisualizer"];
+            this.progVisualizerData = _data["progVisualizerData"];
         }
     }
-    
-    export interface IISolution {
-        values?: any[] | undefined;
-    
-        [key: string]: any;
+
+    static fromJS(data: any): GameDefinition {
+        data = typeof data === 'object' ? data : {};
+        let result = new GameDefinition();
+        result.init(data);
+        return result;
     }
-    
-    export class ISolution2 implements IISolution2 {
-        values?: any[] | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IISolution2) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
-            }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                if (Array.isArray(_data["values"])) {
-                    this.values = [] as any;
-                    for (let item of _data["values"])
-                        this.values!.push(item);
-                }
-            }
+        data["invisible"] = this.invisible;
+        data["id"] = this.id;
+        data["title"] = this.title;
+        if (Array.isArray(this.phases)) {
+            data["phases"] = [];
+            for (let item of this.phases)
+                data["phases"].push(item.toJSON());
         }
-    
-        static fromJS(data: any): ISolution2 {
-            data = typeof data === 'object' ? data : {};
-            let result = new ISolution2();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            if (Array.isArray(this.values)) {
-                data["values"] = [];
-                for (let item of this.values)
-                    data["values"].push(item);
-            }
-            return data;
-        }
+        data["progVisualizer"] = this.progVisualizer;
+        data["progVisualizerData"] = this.progVisualizerData;
+        return data;
     }
-    
-    export interface IISolution2 {
-        values?: any[] | undefined;
-    
-        [key: string]: any;
-    }
-    
-    export class IStimuli implements IIStimuli {
-        type?: string | undefined;
-        problemString?: string | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IIStimuli) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+}
+
+export interface IGameDefinition {
+    invisible?: boolean;
+    id?: string;
+    title?: string;
+    phases?: PhaseDefinition[];
+    progVisualizer?: string;
+    progVisualizerData?: any;
+
+    [key: string]: any;
+}
+
+export class GameRunStats implements IGameRunStats {
+    gameId?: string;
+    lastLevel?: number;
+    highestLevel?: number;
+    won?: boolean;
+    customData?: JsonDocument | undefined;
+    trainingTime?: number;
+    trainingDay?: number;
+    started_at?: number;
+    cancelled?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IGameRunStats) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.type = _data["type"];
-                this.problemString = _data["problemString"];
-            }
-        }
-    
-        static fromJS(data: any): IStimuli {
-            data = typeof data === 'object' ? data : {};
-            let result = new IStimuli();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["type"] = this.type;
-            data["problemString"] = this.problemString;
-            return data;
         }
     }
-    
-    export interface IIStimuli {
-        type?: string | undefined;
-        problemString?: string | undefined;
-    
-        [key: string]: any;
-    }
-    
-    export class JsonDocument implements IJsonDocument {
-    
-        [key: string]: any;
-    
-        constructor(data?: IJsonDocument) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-            }
-        }
-    
-        static fromJS(data: any): JsonDocument {
-            data = typeof data === 'object' ? data : {};
-            let result = new JsonDocument();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            return data;
+            this.gameId = _data["gameId"];
+            this.lastLevel = _data["lastLevel"];
+            this.highestLevel = _data["highestLevel"];
+            this.won = _data["won"];
+            this.customData = _data["customData"] ? JsonDocument.fromJS(_data["customData"]) : <any>undefined;
+            this.trainingTime = _data["trainingTime"];
+            this.trainingDay = _data["trainingDay"];
+            this.started_at = _data["started_at"];
+            this.cancelled = _data["cancelled"];
         }
     }
-    
-    export interface IJsonDocument {
-    
-        [key: string]: any;
+
+    static fromJS(data: any): GameRunStats {
+        data = typeof data === 'object' ? data : {};
+        let result = new GameRunStats();
+        result.init(data);
+        return result;
     }
-    
-    export class LoginResult implements ILoginResult {
-        sessionId!: string;
-    
-        [key: string]: any;
-    
-        constructor(data?: ILoginResult) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
-            }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.sessionId = _data["sessionId"];
-            }
-        }
-    
-        static fromJS(data: any): LoginResult {
-            data = typeof data === 'object' ? data : {};
-            let result = new LoginResult();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["sessionId"] = this.sessionId;
-            return data;
-        }
+        data["gameId"] = this.gameId;
+        data["lastLevel"] = this.lastLevel;
+        data["highestLevel"] = this.highestLevel;
+        data["won"] = this.won;
+        data["customData"] = this.customData ? this.customData.toJSON() : <any>undefined;
+        data["trainingTime"] = this.trainingTime;
+        data["trainingDay"] = this.trainingDay;
+        data["started_at"] = this.started_at;
+        data["cancelled"] = this.cancelled;
+        return data;
     }
-    
-    export interface ILoginResult {
-        sessionId: string;
-    
-        [key: string]: any;
-    }
-    
-    export class PhaseDefinition implements IPhaseDefinition {
-        phase?: string | undefined;
-        endCriteriaData?: EndCriteriaData | undefined;
-        levels?: any;
-        type?: string;
-        medalMode?: string | undefined;
-        problemGeneratorData?: ProblemGeneratorData | undefined;
-        problemFactory?: any;
-        levelManager?: any;
-    
-        [key: string]: any;
-    
-        constructor(data?: IPhaseDefinition) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+}
+
+export interface IGameRunStats {
+    gameId?: string;
+    lastLevel?: number;
+    highestLevel?: number;
+    won?: boolean;
+    customData?: JsonDocument | undefined;
+    trainingTime?: number;
+    trainingDay?: number;
+    started_at?: number;
+    cancelled?: boolean;
+
+    [key: string]: any;
+}
+
+export class IResponseAnalysisResult implements IIResponseAnalysisResult {
+    isFinished?: boolean;
+    isCorrect?: boolean | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IIResponseAnalysisResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.phase = _data["phase"];
-                this.endCriteriaData = _data["endCriteriaData"] ? EndCriteriaData.fromJS(_data["endCriteriaData"]) : <any>undefined;
-                this.levels = _data["levels"];
-                this.type = _data["type"];
-                this.medalMode = _data["medalMode"];
-                this.problemGeneratorData = _data["problemGeneratorData"] ? ProblemGeneratorData.fromJS(_data["problemGeneratorData"]) : <any>undefined;
-                this.problemFactory = _data["problemFactory"];
-                this.levelManager = _data["levelManager"];
-            }
-        }
-    
-        static fromJS(data: any): PhaseDefinition {
-            data = typeof data === 'object' ? data : {};
-            let result = new PhaseDefinition();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["phase"] = this.phase;
-            data["endCriteriaData"] = this.endCriteriaData ? this.endCriteriaData.toJSON() : <any>undefined;
-            data["levels"] = this.levels;
-            data["type"] = this.type;
-            data["medalMode"] = this.medalMode;
-            data["problemGeneratorData"] = this.problemGeneratorData ? this.problemGeneratorData.toJSON() : <any>undefined;
-            data["problemFactory"] = this.problemFactory;
-            data["levelManager"] = this.levelManager;
-            return data;
         }
     }
-    
-    export interface IPhaseDefinition {
-        phase?: string | undefined;
-        endCriteriaData?: EndCriteriaData | undefined;
-        levels?: any;
-        type?: string;
-        medalMode?: string | undefined;
-        problemGeneratorData?: ProblemGeneratorData | undefined;
-        problemFactory?: any;
-        levelManager?: any;
-    
-        [key: string]: any;
-    }
-    
-    export class ProblemGeneratorData implements IProblemGeneratorData {
-        generator?: string | undefined;
-        randomizeProblemOrder?: boolean | undefined;
-        levelStartLevelFromLastPhase?: boolean | undefined;
-        levelMin?: number | undefined;
-        levelMax?: number | undefined;
-        levelNewDayChange?: number | undefined;
-        levelNewPhaseChange?: number | undefined;
-        levelSuccessChange?: number | undefined;
-        levelFailureChange?: number | undefined;
-        levelWonChallengeChange?: number | undefined;
-        levelLostChallengeChange?: number | undefined;
-        levelMaxFallFromHighest?: number | undefined;
-        highestLevel?: number | undefined;
-        problemProps?: any;
-        phaseProps?: any;
-    
-        [key: string]: any;
-    
-        constructor(data?: IProblemGeneratorData) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-        }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.generator = _data["generator"];
-                this.randomizeProblemOrder = _data["randomizeProblemOrder"];
-                this.levelStartLevelFromLastPhase = _data["levelStartLevelFromLastPhase"];
-                this.levelMin = _data["levelMin"];
-                this.levelMax = _data["levelMax"];
-                this.levelNewDayChange = _data["levelNewDayChange"];
-                this.levelNewPhaseChange = _data["levelNewPhaseChange"];
-                this.levelSuccessChange = _data["levelSuccessChange"];
-                this.levelFailureChange = _data["levelFailureChange"];
-                this.levelWonChallengeChange = _data["levelWonChallengeChange"];
-                this.levelLostChallengeChange = _data["levelLostChallengeChange"];
-                this.levelMaxFallFromHighest = _data["levelMaxFallFromHighest"];
-                this.highestLevel = _data["highestLevel"];
-                this.problemProps = _data["problemProps"];
-                this.phaseProps = _data["phaseProps"];
-            }
-        }
-    
-        static fromJS(data: any): ProblemGeneratorData {
-            data = typeof data === 'object' ? data : {};
-            let result = new ProblemGeneratorData();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
-            }
-            data["generator"] = this.generator;
-            data["randomizeProblemOrder"] = this.randomizeProblemOrder;
-            data["levelStartLevelFromLastPhase"] = this.levelStartLevelFromLastPhase;
-            data["levelMin"] = this.levelMin;
-            data["levelMax"] = this.levelMax;
-            data["levelNewDayChange"] = this.levelNewDayChange;
-            data["levelNewPhaseChange"] = this.levelNewPhaseChange;
-            data["levelSuccessChange"] = this.levelSuccessChange;
-            data["levelFailureChange"] = this.levelFailureChange;
-            data["levelWonChallengeChange"] = this.levelWonChallengeChange;
-            data["levelLostChallengeChange"] = this.levelLostChallengeChange;
-            data["levelMaxFallFromHighest"] = this.levelMaxFallFromHighest;
-            data["highestLevel"] = this.highestLevel;
-            data["problemProps"] = this.problemProps;
-            data["phaseProps"] = this.phaseProps;
-            return data;
+            this.isFinished = _data["isFinished"];
+            this.isCorrect = _data["isCorrect"];
         }
     }
-    
-    export interface IProblemGeneratorData {
-        generator?: string | undefined;
-        randomizeProblemOrder?: boolean | undefined;
-        levelStartLevelFromLastPhase?: boolean | undefined;
-        levelMin?: number | undefined;
-        levelMax?: number | undefined;
-        levelNewDayChange?: number | undefined;
-        levelNewPhaseChange?: number | undefined;
-        levelSuccessChange?: number | undefined;
-        levelFailureChange?: number | undefined;
-        levelWonChallengeChange?: number | undefined;
-        levelLostChallengeChange?: number | undefined;
-        levelMaxFallFromHighest?: number | undefined;
-        highestLevel?: number | undefined;
-        problemProps?: any;
-        phaseProps?: any;
-    
-        [key: string]: any;
+
+    static fromJS(data: any): IResponseAnalysisResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new IResponseAnalysisResult();
+        result.init(data);
+        return result;
     }
-    
-    export class StimuliAndSolution implements IStimuliAndSolution {
-        stimuli!: IStimuli;
-        solution?: ISolution | undefined;
-    
-        [key: string]: any;
-    
-        constructor(data?: IStimuliAndSolution) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
-            }
-            if (!data) {
-                this.stimuli = new IStimuli();
-            }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
-                this.stimuli = _data["stimuli"] ? IStimuli.fromJS(_data["stimuli"]) : new IStimuli();
-                this.solution = _data["solution"] ? ISolution.fromJS(_data["solution"]) : <any>undefined;
+        data["isFinished"] = this.isFinished;
+        data["isCorrect"] = this.isCorrect;
+        return data;
+    }
+}
+
+export interface IIResponseAnalysisResult {
+    isFinished?: boolean;
+    isCorrect?: boolean | undefined;
+
+    [key: string]: any;
+}
+
+export class IResponseAnalysisResult2 implements IIResponseAnalysisResult2 {
+    isFinished?: boolean;
+    isCorrect?: boolean | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IIResponseAnalysisResult2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
         }
-    
-        static fromJS(data: any): StimuliAndSolution {
-            data = typeof data === 'object' ? data : {};
-            let result = new StimuliAndSolution();
-            result.init(data);
-            return result;
-        }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
             }
-            data["stimuli"] = this.stimuli ? this.stimuli.toJSON() : <any>undefined;
-            data["solution"] = this.solution ? this.solution.toJSON() : <any>undefined;
-            return data;
+            this.isFinished = _data["isFinished"];
+            this.isCorrect = _data["isCorrect"];
         }
     }
-    
-    export interface IStimuliAndSolution {
-        stimuli: IStimuli;
-        solution?: ISolution | undefined;
-    
-        [key: string]: any;
+
+    static fromJS(data: any): IResponseAnalysisResult2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new IResponseAnalysisResult2();
+        result.init(data);
+        return result;
     }
-    
-    export class Type implements IType {
-    
-        [key: string]: any;
-    
-        constructor(data?: IType) {
-            if (data) {
-                for (var property in data) {
-                    if (data.hasOwnProperty(property))
-                        (<any>this)[property] = (<any>data)[property];
-                }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["isFinished"] = this.isFinished;
+        data["isCorrect"] = this.isCorrect;
+        return data;
+    }
+}
+
+export interface IIResponseAnalysisResult2 {
+    isFinished?: boolean;
+    isCorrect?: boolean | undefined;
+
+    [key: string]: any;
+}
+
+export class ISolution implements IISolution {
+    values?: any[] | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IISolution) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
         }
-    
-        init(_data?: any) {
-            if (_data) {
-                for (var property in _data) {
-                    if (_data.hasOwnProperty(property))
-                        this[property] = _data[property];
-                }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
             }
         }
-    
-        static fromJS(data: any): Type {
-            data = typeof data === 'object' ? data : {};
-            let result = new Type();
-            result.init(data);
-            return result;
+    }
+
+    static fromJS(data: any): ISolution {
+        data = typeof data === 'object' ? data : {};
+        let result = new ISolution();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
         }
-    
-        toJSON(data?: any) {
-            data = typeof data === 'object' ? data : {};
-            for (var property in this) {
-                if (this.hasOwnProperty(property))
-                    data[property] = this[property];
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IISolution {
+    values?: any[] | undefined;
+
+    [key: string]: any;
+}
+
+export class ISolution2 implements IISolution2 {
+    values?: any[] | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IISolution2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
             }
-            return data;
         }
     }
-    
-    export interface IType {
-    
-        [key: string]: any;
-    }
-    
-    export class ApiException extends Error {
-        override message: string;
-        status: number;
-        response: string;
-        headers: { [key: string]: any; };
-        result: any;
-    
-        constructor(message: string, status: number, response: string, headers: { [key: string]: any; }, result: any) {
-            super();
-    
-            this.message = message;
-            this.status = status;
-            this.response = response;
-            this.headers = headers;
-            this.result = result;
-        }
-    
-        protected isApiException = true;
-    
-        static isApiException(obj: any): obj is ApiException {
-            return obj.isApiException === true;
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(item);
+            }
         }
     }
-    
-    function throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): any {
-        if (result !== null && result !== undefined)
-            throw result;
-        else
-            throw new ApiException(message, status, response, headers, null);
+
+    static fromJS(data: any): ISolution2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new ISolution2();
+        result.init(data);
+        return result;
     }
-    
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IISolution2 {
+    values?: any[] | undefined;
+
+    [key: string]: any;
+}
+
+export class IStimuli implements IIStimuli {
+    type?: string | undefined;
+    problemString?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IIStimuli) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.problemString = _data["problemString"];
+        }
+    }
+
+    static fromJS(data: any): IStimuli {
+        data = typeof data === 'object' ? data : {};
+        let result = new IStimuli();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["problemString"] = this.problemString;
+        return data;
+    }
+}
+
+export interface IIStimuli {
+    type?: string | undefined;
+    problemString?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class JsonDocument implements IJsonDocument {
+
+    [key: string]: any;
+
+    constructor(data?: IJsonDocument) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): JsonDocument {
+        data = typeof data === 'object' ? data : {};
+        let result = new JsonDocument();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IJsonDocument {
+
+    [key: string]: any;
+}
+
+export class LevelInfo implements ILevelInfo {
+    current!: number;
+    top!: number;
+    last?: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ILevelInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.current = _data["current"];
+            this.top = _data["top"];
+            this.last = _data["last"];
+        }
+    }
+
+    static fromJS(data: any): LevelInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new LevelInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["current"] = this.current;
+        data["top"] = this.top;
+        data["last"] = this.last;
+        return data;
+    }
+}
+
+export interface ILevelInfo {
+    current: number;
+    top: number;
+    last?: number | undefined;
+
+    [key: string]: any;
+}
+
+export class LoginResult implements ILoginResult {
+    sessionId!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ILoginResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.sessionId = _data["sessionId"];
+        }
+    }
+
+    static fromJS(data: any): LoginResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new LoginResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["sessionId"] = this.sessionId;
+        return data;
+    }
+}
+
+export interface ILoginResult {
+    sessionId: string;
+
+    [key: string]: any;
+}
+
+export class Meta implements IMeta {
+    level!: LevelInfo;
+    progress!: ProgressInfo;
+
+    [key: string]: any;
+
+    constructor(data?: IMeta) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.level = new LevelInfo();
+            this.progress = new ProgressInfo();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.level = _data["level"] ? LevelInfo.fromJS(_data["level"]) : new LevelInfo();
+            this.progress = _data["progress"] ? ProgressInfo.fromJS(_data["progress"]) : new ProgressInfo();
+        }
+    }
+
+    static fromJS(data: any): Meta {
+        data = typeof data === 'object' ? data : {};
+        let result = new Meta();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["level"] = this.level ? this.level.toJSON() : <any>undefined;
+        data["progress"] = this.progress ? this.progress.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IMeta {
+    level: LevelInfo;
+    progress: ProgressInfo;
+
+    [key: string]: any;
+}
+
+export class PhaseDefinition implements IPhaseDefinition {
+    phase?: string | undefined;
+    endCriteriaData?: EndCriteriaData | undefined;
+    levels?: any;
+    type?: string;
+    medalMode?: string | undefined;
+    problemGeneratorData?: ProblemGeneratorData | undefined;
+    problemFactory?: any;
+    levelManager?: any;
+
+    [key: string]: any;
+
+    constructor(data?: IPhaseDefinition) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.phase = _data["phase"];
+            this.endCriteriaData = _data["endCriteriaData"] ? EndCriteriaData.fromJS(_data["endCriteriaData"]) : <any>undefined;
+            this.levels = _data["levels"];
+            this.type = _data["type"];
+            this.medalMode = _data["medalMode"];
+            this.problemGeneratorData = _data["problemGeneratorData"] ? ProblemGeneratorData.fromJS(_data["problemGeneratorData"]) : <any>undefined;
+            this.problemFactory = _data["problemFactory"];
+            this.levelManager = _data["levelManager"];
+        }
+    }
+
+    static fromJS(data: any): PhaseDefinition {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhaseDefinition();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["phase"] = this.phase;
+        data["endCriteriaData"] = this.endCriteriaData ? this.endCriteriaData.toJSON() : <any>undefined;
+        data["levels"] = this.levels;
+        data["type"] = this.type;
+        data["medalMode"] = this.medalMode;
+        data["problemGeneratorData"] = this.problemGeneratorData ? this.problemGeneratorData.toJSON() : <any>undefined;
+        data["problemFactory"] = this.problemFactory;
+        data["levelManager"] = this.levelManager;
+        return data;
+    }
+}
+
+export interface IPhaseDefinition {
+    phase?: string | undefined;
+    endCriteriaData?: EndCriteriaData | undefined;
+    levels?: any;
+    type?: string;
+    medalMode?: string | undefined;
+    problemGeneratorData?: ProblemGeneratorData | undefined;
+    problemFactory?: any;
+    levelManager?: any;
+
+    [key: string]: any;
+}
+
+export class ProblemGeneratorData implements IProblemGeneratorData {
+    generator?: string | undefined;
+    randomizeProblemOrder?: boolean | undefined;
+    levelStartLevelFromLastPhase?: boolean | undefined;
+    levelMin?: number | undefined;
+    levelMax?: number | undefined;
+    levelNewDayChange?: number | undefined;
+    levelNewPhaseChange?: number | undefined;
+    levelSuccessChange?: number | undefined;
+    levelFailureChange?: number | undefined;
+    levelWonChallengeChange?: number | undefined;
+    levelLostChallengeChange?: number | undefined;
+    levelMaxFallFromHighest?: number | undefined;
+    highestLevel?: number | undefined;
+    problemProps?: any;
+    phaseProps?: any;
+
+    [key: string]: any;
+
+    constructor(data?: IProblemGeneratorData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.generator = _data["generator"];
+            this.randomizeProblemOrder = _data["randomizeProblemOrder"];
+            this.levelStartLevelFromLastPhase = _data["levelStartLevelFromLastPhase"];
+            this.levelMin = _data["levelMin"];
+            this.levelMax = _data["levelMax"];
+            this.levelNewDayChange = _data["levelNewDayChange"];
+            this.levelNewPhaseChange = _data["levelNewPhaseChange"];
+            this.levelSuccessChange = _data["levelSuccessChange"];
+            this.levelFailureChange = _data["levelFailureChange"];
+            this.levelWonChallengeChange = _data["levelWonChallengeChange"];
+            this.levelLostChallengeChange = _data["levelLostChallengeChange"];
+            this.levelMaxFallFromHighest = _data["levelMaxFallFromHighest"];
+            this.highestLevel = _data["highestLevel"];
+            this.problemProps = _data["problemProps"];
+            this.phaseProps = _data["phaseProps"];
+        }
+    }
+
+    static fromJS(data: any): ProblemGeneratorData {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemGeneratorData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["generator"] = this.generator;
+        data["randomizeProblemOrder"] = this.randomizeProblemOrder;
+        data["levelStartLevelFromLastPhase"] = this.levelStartLevelFromLastPhase;
+        data["levelMin"] = this.levelMin;
+        data["levelMax"] = this.levelMax;
+        data["levelNewDayChange"] = this.levelNewDayChange;
+        data["levelNewPhaseChange"] = this.levelNewPhaseChange;
+        data["levelSuccessChange"] = this.levelSuccessChange;
+        data["levelFailureChange"] = this.levelFailureChange;
+        data["levelWonChallengeChange"] = this.levelWonChallengeChange;
+        data["levelLostChallengeChange"] = this.levelLostChallengeChange;
+        data["levelMaxFallFromHighest"] = this.levelMaxFallFromHighest;
+        data["highestLevel"] = this.highestLevel;
+        data["problemProps"] = this.problemProps;
+        data["phaseProps"] = this.phaseProps;
+        return data;
+    }
+}
+
+export interface IProblemGeneratorData {
+    generator?: string | undefined;
+    randomizeProblemOrder?: boolean | undefined;
+    levelStartLevelFromLastPhase?: boolean | undefined;
+    levelMin?: number | undefined;
+    levelMax?: number | undefined;
+    levelNewDayChange?: number | undefined;
+    levelNewPhaseChange?: number | undefined;
+    levelSuccessChange?: number | undefined;
+    levelFailureChange?: number | undefined;
+    levelWonChallengeChange?: number | undefined;
+    levelLostChallengeChange?: number | undefined;
+    levelMaxFallFromHighest?: number | undefined;
+    highestLevel?: number | undefined;
+    problemProps?: any;
+    phaseProps?: any;
+
+    [key: string]: any;
+}
+
+export class ProgressInfo implements IProgressInfo {
+    endPercentage!: number;
+    failPercentage!: number;
+    targetPercentage!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IProgressInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.endPercentage = _data["endPercentage"];
+            this.failPercentage = _data["failPercentage"];
+            this.targetPercentage = _data["targetPercentage"];
+        }
+    }
+
+    static fromJS(data: any): ProgressInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProgressInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["endPercentage"] = this.endPercentage;
+        data["failPercentage"] = this.failPercentage;
+        data["targetPercentage"] = this.targetPercentage;
+        return data;
+    }
+}
+
+export interface IProgressInfo {
+    endPercentage: number;
+    failPercentage: number;
+    targetPercentage: number;
+
+    [key: string]: any;
+}
+
+export class ResponseResultExtended implements IResponseResultExtended {
+    analysis!: IResponseAnalysisResult2 | undefined;
+    meta!: Meta;
+
+    [key: string]: any;
+
+    constructor(data?: IResponseResultExtended) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.meta = new Meta();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.analysis = _data["analysis"] ? IResponseAnalysisResult2.fromJS(_data["analysis"]) : <any>undefined;
+            this.meta = _data["meta"] ? Meta.fromJS(_data["meta"]) : new Meta();
+        }
+    }
+
+    static fromJS(data: any): ResponseResultExtended {
+        data = typeof data === 'object' ? data : {};
+        let result = new ResponseResultExtended();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["analysis"] = this.analysis ? this.analysis.toJSON() : <any>undefined;
+        data["meta"] = this.meta ? this.meta.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IResponseResultExtended {
+    analysis: IResponseAnalysisResult2 | undefined;
+    meta: Meta;
+
+    [key: string]: any;
+}
+
+export class StimuliAndSolution implements IStimuliAndSolution {
+    stimuli!: IStimuli;
+    solution?: ISolution | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IStimuliAndSolution) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.stimuli = new IStimuli();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.stimuli = _data["stimuli"] ? IStimuli.fromJS(_data["stimuli"]) : new IStimuli();
+            this.solution = _data["solution"] ? ISolution.fromJS(_data["solution"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): StimuliAndSolution {
+        data = typeof data === 'object' ? data : {};
+        let result = new StimuliAndSolution();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["stimuli"] = this.stimuli ? this.stimuli.toJSON() : <any>undefined;
+        data["solution"] = this.solution ? this.solution.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IStimuliAndSolution {
+    stimuli: IStimuli;
+    solution?: ISolution | undefined;
+
+    [key: string]: any;
+}
+
+export class Type implements IType {
+
+    [key: string]: any;
+
+    constructor(data?: IType) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+        }
+    }
+
+    static fromJS(data: any): Type {
+        data = typeof data === 'object' ? data : {};
+        let result = new Type();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        return data;
+    }
+}
+
+export interface IType {
+
+    [key: string]: any;
+}
+
+export class ApiException extends Error {
+    override message: string;
+    status: number;
+    response: string;
+    headers: { [key: string]: any; };
+    result: any;
+
+    constructor(message: string, status: number, response: string, headers: { [key: string]: any; }, result: any) {
+        super();
+
+        this.message = message;
+        this.status = status;
+        this.response = response;
+        this.headers = headers;
+        this.result = result;
+    }
+
+    protected isApiException = true;
+
+    static isApiException(obj: any): obj is ApiException {
+        return obj.isApiException === true;
+    }
+}
+
+function throwException(message: string, status: number, response: string, headers: { [key: string]: any; }, result?: any): any {
+    if (result !== null && result !== undefined)
+        throw result;
+    else
+        throw new ApiException(message, status, response, headers, null);
+}

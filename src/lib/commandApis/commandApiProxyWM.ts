@@ -1,5 +1,5 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
-import type { IResponseAnalysisResult } from "$lib/nswagclient";
+import type { ILevelInfo, IResponseAnalysisResult, ResponseResultExtended } from "$lib/nswagclient";
 import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
 import type { CommandApi } from "./commandApi";
 
@@ -22,17 +22,21 @@ export class CommandApiProxyWM implements CommandApi {
 
     async postResponse(value: any) {
         if (typeof value === "number") {
-            let analysis = this.analyzeResponse(value);
+            const analysis = this.analyzeResponse(value);
+            let result = <ResponseResultExtended>{
+                analysis: analysis,
+                meta: { level: {}, progress: {} }
+            };
             if (analysis.isFinished) {
                 const tmp = await this.api.registerResponse(this.userResponse);
                 if (!tmp) throw new Error("");
-                // TODO: doing something incorrect on server ATM... 
-                // analysis = tmp;
+                console.log("respres.meta", tmp.meta.level, tmp.meta.progress);
+                result = tmp;
             }
             const commands = analysis.isCorrect
                 ? []
                 : this.getBlinkCommands(this.solution[this.userResponse.length - 1]);
-            return { analysis, commands };
+            return { result, commands };
         } else {
             throw new Error("Not a number");
         }

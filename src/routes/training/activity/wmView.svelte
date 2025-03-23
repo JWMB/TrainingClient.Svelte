@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { type WMController } from "$lib/controllers/wmController";
 	import { max } from "$lib/utils";
+	import LevelMeter from "../../../components/levelMeter.svelte";
 
     let { controller }: {
         controller: WMController | null,
@@ -17,8 +18,15 @@
             hilite: false
             }),
         enable: value => enabled = value,
-        showText: value => textMessage = value
+        showText: value => textMessage = value,
+        updateLevel: (current, top) => { levelInfo.current = current; levelInfo.top = top; },
+        updateProgress: (target, fail, end) => { progressInfo.targetPercentage = target; progressInfo.failPercentage = fail, progressInfo.endPercentage = end; }
     });
+
+    let levelInfo: { current: number, top: number }
+        = $state({ current: 0, top: 0});
+    let progressInfo: { targetPercentage: number, failPercentage: number, endPercentage: number}
+        = $state({targetPercentage: 0, failPercentage: 0, endPercentage: 0});
 
     let textMessage: string = $state("");
     let enabled: boolean = $state(true);
@@ -44,6 +52,9 @@
     const getCX = (v: number) => 100 * (0.5 + v) / (gridSize.x + 1);
     const getCY = (v: number) => 100 * (0.5 + v) / (gridSize.y + 1);
 </script>
+
+<LevelMeter current={levelInfo.current} top={levelInfo.top}></LevelMeter>
+Progress - target:{progressInfo.targetPercentage} fail:{progressInfo.failPercentage} end:{progressInfo.endPercentage}
 
 <div>
     <svg viewBox="0 0 100 100" height="300px" style="filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7))">

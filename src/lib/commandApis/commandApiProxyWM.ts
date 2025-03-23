@@ -1,6 +1,6 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
 import type { IResponseAnalysisResult } from "$lib/nswagclient";
-import type { Cmd, Hilite, Sleep, Enable } from "$lib/presentationCommands";
+import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
 import type { CommandApi } from "./commandApi";
 
 export class CommandApiProxyWM implements CommandApi {

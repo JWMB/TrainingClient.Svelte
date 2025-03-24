@@ -516,6 +516,7 @@ export interface IEnterGameResult {
 
 export class EnterPhaseResult implements IEnterPhaseResult {
     gameRuns!: GameRunStats[];
+    phaseDefinition!: PhaseDefinition;
 
     [key: string]: any;
 
@@ -528,6 +529,7 @@ export class EnterPhaseResult implements IEnterPhaseResult {
         }
         if (!data) {
             this.gameRuns = [];
+            this.phaseDefinition = new PhaseDefinition();
         }
     }
 
@@ -542,6 +544,7 @@ export class EnterPhaseResult implements IEnterPhaseResult {
                 for (let item of _data["gameRuns"])
                     this.gameRuns!.push(GameRunStats.fromJS(item));
             }
+            this.phaseDefinition = _data["phaseDefinition"] ? PhaseDefinition.fromJS(_data["phaseDefinition"]) : new PhaseDefinition();
         }
     }
 
@@ -563,12 +566,14 @@ export class EnterPhaseResult implements IEnterPhaseResult {
             for (let item of this.gameRuns)
                 data["gameRuns"].push(item.toJSON());
         }
+        data["phaseDefinition"] = this.phaseDefinition ? this.phaseDefinition.toJSON() : <any>undefined;
         return data;
     }
 }
 
 export interface IEnterPhaseResult {
     gameRuns: GameRunStats[];
+    phaseDefinition: PhaseDefinition;
 
     [key: string]: any;
 }
@@ -1205,11 +1210,12 @@ export class PhaseDefinition implements IPhaseDefinition {
     phase?: string | undefined;
     endCriteriaData?: EndCriteriaData | undefined;
     levels?: any;
-    type?: string;
+    type!: string;
     medalMode?: string | undefined;
     problemGeneratorData?: ProblemGeneratorData | undefined;
     problemFactory?: any;
     levelManager?: any;
+    settings?: any;
 
     [key: string]: any;
 
@@ -1236,6 +1242,7 @@ export class PhaseDefinition implements IPhaseDefinition {
             this.problemGeneratorData = _data["problemGeneratorData"] ? ProblemGeneratorData.fromJS(_data["problemGeneratorData"]) : <any>undefined;
             this.problemFactory = _data["problemFactory"];
             this.levelManager = _data["levelManager"];
+            this.settings = _data["settings"];
         }
     }
 
@@ -1260,6 +1267,7 @@ export class PhaseDefinition implements IPhaseDefinition {
         data["problemGeneratorData"] = this.problemGeneratorData ? this.problemGeneratorData.toJSON() : <any>undefined;
         data["problemFactory"] = this.problemFactory;
         data["levelManager"] = this.levelManager;
+        data["settings"] = this.settings;
         return data;
     }
 }
@@ -1268,11 +1276,12 @@ export interface IPhaseDefinition {
     phase?: string | undefined;
     endCriteriaData?: EndCriteriaData | undefined;
     levels?: any;
-    type?: string;
+    type: string;
     medalMode?: string | undefined;
     problemGeneratorData?: ProblemGeneratorData | undefined;
     problemFactory?: any;
     levelManager?: any;
+    settings?: any;
 
     [key: string]: any;
 }

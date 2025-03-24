@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
 	import { onMount } from "svelte";
-	import LevelMeter from "../../../components/levelMeter.svelte";
-	import ProgressMeter from "../../../components/progressMeter.svelte";
 
     let { controller }: {
         controller: WMController | null,
@@ -27,10 +25,7 @@
                 hilite: false
                 }),
             enable: value => enabled = value,
-            showText: value => textMessage = value,
-            updateLevel: (current, top) => { levelInfo.current = current; levelInfo.top = top; },
-            updateProgress: (target, fail, end) => { progressInfo.targetPercentage = target; progressInfo.failPercentage = fail, progressInfo.endPercentage = end; },
-            tick: () => time = Date.now()            
+            showText: null, updateLevel: null, updateProgress: null
         });
 
         await wmController().init();
@@ -46,13 +41,6 @@
     });
     let time: number = $state(0);
 
-    // TODO: these should be in like a "HUD" component
-    let levelInfo: { current: number, top: number }
-        = $state({ current: 0, top: 0});
-    let progressInfo: { targetPercentage: number, failPercentage: number, endPercentage: number}
-        = $state({targetPercentage: 0, failPercentage: 0, endPercentage: 0});
-
-    let textMessage: string = $state("");
     let enabled: boolean = $state(true);
 
     const items: {id: number, hilite: boolean, x: number, y: number }[] = $state([]);
@@ -63,16 +51,12 @@
         return item;
     }
     function userHilite(id: number, hilite: boolean) {
-        // if (!enabled) return;
         getItem(id).hilite = hilite;
     }
     function onClick(item: {id: number}) {
         wmController().click(item.id);
     }
 </script>
-
-<LevelMeter current={levelInfo.current} top={levelInfo.top}></LevelMeter>
-<ProgressMeter target={progressInfo.targetPercentage} fail={progressInfo.failPercentage} end={progressInfo.endPercentage} ></ProgressMeter>
 
 <div>
     <div id={time.toString()}>
@@ -89,5 +73,3 @@
     </svg>
     </div>
 </div>
-
-<h2>{textMessage}</h2>

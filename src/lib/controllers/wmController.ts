@@ -20,24 +20,27 @@ export interface ItemLayoutFunctions {
     size(pt: { x: number, y: number}, time: number): number;
 }
 
-// export type ViewFunctions = { 
-//     hilite: (id: number, on: boolean) => void;
-//     add: (id: number, x: number, y: number) => void;
-//     enable: (value: boolean) => void;
-//     showText: (value: string) => void;
-//     updateLevel: (current: number, top: number) => void;
-//     updateProgress: (target: number, fail: number, end: number) => void;
-// };
+type WmViewFunctionsNonNull = { 
+    hilite: (id: number, on: boolean) => void;
+    add: (id: number, x: number, y: number) => void;
+    enable: (value: boolean) => void;
+    showText: (value: string) => void;
+    updateLevel: (current: number, top: number) => void;
+    updateProgress: (target: number, fail: number, end: number) => void;
+};
 
-export interface WmViewFunctions {
-    hilite(id: number, on: boolean): void;
-    add(id: number, x: number, y: number): void;
-    enable(value: boolean): void;
-    showText(value: string): void;
-    updateLevel(current: number, top: number): void;
-    updateProgress(target: number, fail: number, end: number): void;
-    tick(): void;
-}
+type Nullable<T> = { [K in keyof T]: T[K] | null };
+
+export type WmViewFunctions = Nullable<WmViewFunctionsNonNull>;
+
+// export interface WmViewFunctions {
+//     hilite(id: number, on: boolean): void;
+//     add(id: number, x: number, y: number): void;
+//     enable(value: boolean): void;
+//     showText(value: string): void;
+//     updateLevel(current: number, top: number): void;
+//     updateProgress(target: number, fail: number, end: number): void;
+// }
 
 export class WMGridController implements WMController {
     constructor(enterPhaseResult: EnterPhaseResult | undefined, protected api: CommandApi) { //protected size: {x: number, y: number}
@@ -71,9 +74,8 @@ export class WMGridController implements WMController {
     private onFinished: (() => void) | null = null;
     async init() {
         // this.onFinished = onFinished;
-        console.log("INIT", this.functions);
         for (let item of this.createItems()) {
-            this.functions?.add(item.id, item.x, item.y);
+            this.listeners.forEach(o => o.add(item.id, item.x, item.y));
         }
     }
     async start() {
@@ -89,23 +91,23 @@ export class WMGridController implements WMController {
 
     async executeSequence(cmds: Cmd[]) {
         for (let cmd of cmds) {
-            await execute(cmd, this.functions);
+            await execute(cmd, this.listeners);
         }
 
-        function execute(cmd: Cmd, functions?: WmViewFunctions) {
+        function execute(cmd: Cmd, listeners: WmViewFunctionsNonNull[]) {
             return new Promise<void>((res, rej) => {
                 switch (cmd.type) {
                     case "text":
                         const t = cmd as Text;
-                        if (functions) functions.showText(t.value);
+                        listeners.forEach(o => o.showText(t.value));
                         break;
                     case "enable":
                         const e = cmd as Enable;
-                        if (functions) functions.enable(e.value);
+                        listeners.forEach(o => o.enable(e.value));
                         break;
                     case "hilite":
                         const h = cmd as Hilite;
-                        if (functions) functions.hilite(h.id, h.on);
+                        listeners.forEach(o => o.hilite(h.id, h.on));
                         break;
                     case "sleep":
                         const s = cmd as Sleep;
@@ -118,26 +120,34 @@ export class WMGridController implements WMController {
         }
     }
 
-    private functions?: WmViewFunctions;
+    private listeners: WmViewFunctionsNonNull[] = [];
+    //private functions?: WmViewFunctionsNonNull;
     registerView(functions: WmViewFunctions): void {
-        this.functions = functions;
+        this.listeners.push(<WmViewFunctionsNonNull>{
+            hilite: functions.hilite != null ? functions.hilite : (id, on) => {},
+            add: functions.add != null ? functions.add : (id, x, y) => {},
+            enable: functions.enable != null ? functions.enable : v => {},
+            showText: functions.showText != null ? functions.showText : v => {},
+            updateLevel: functions.updateLevel != null ? functions.updateLevel : v => {},
+            updateProgress: functions.updateProgress != null ? functions.updateProgress : v => {},
+        });
     }
 
     click(id: number) {
-        this.functions?.enable(false);
+        this.listeners.forEach(o => o.enable(false));
         for (let item of this.createItems())
-            this.functions?.hilite(item.id, false);
+            this.listeners.forEach(o => o.hilite(item.id, false));
 
         this.api.postResponse(id).then(result => {
             if (result.result.analysis?.isFinished) {
-                this.functions?.updateLevel(result.result.meta.level.current, result.result.meta.level.top);
-                this.functions?.updateProgress(result.result.meta.progress.targetPercentage, result.result.meta.progress.failPercentage, result.result.meta.progress.endPercentage);
+                this.listeners.forEach(o => o.updateLevel(result.result.meta.level.current, result.result.meta.level.top));
+                this.listeners.forEach(o => o.updateProgress(result.result.meta.progress.targetPercentage, result.result.meta.progress.failPercentage, result.result.meta.progress.endPercentage));
             }
             this.executeSequence(result.commands || []).then(() => {
                 if (result.result.analysis?.isFinished) {
                     this.start();
                 } else {
-                    this.functions?.enable(true);
+                    this.listeners.forEach(o => o.enable(true));
                 }
             });
         });
@@ -168,25 +178,8 @@ export class WMCircleController extends WMGridController {
     }
 }
 
-//WM_moving
 export class WMNumbersController extends WMGridController {
-    itemLayout(): ItemLayoutFunctions {
-        let fact = 100;
-        return {
-            location: (pt: { x: number, y: number}, time: number = 0) => {
-                let margin = 20;
-                fact -= margin;
-                const v = (pt.x / (this.size.x + 1)) * Math.PI * 2;
-                return {
-                    x: (Math.sin(v) + 1) / 2 * fact + margin/2,
-                    y: (Math.cos(v) + 1) / 2 * fact + margin/2
-                }
-            },
-            size: (pt: { x: number, y: number}, time: number = 0) => {
-                return Math.PI / 4 * fact / (this.size.x + 2);
-            }
-        }
-    }
 }
 
-// WM_moving
+export class WMMovingController extends WMGridController {
+}

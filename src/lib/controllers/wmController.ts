@@ -10,8 +10,8 @@ export interface GameController {
 
 export interface WMController extends GameController {
     registerView(functions: WmViewFunctions): void;
-    click(id: number): void;
-    onResponse?: (id: number) => Promise<void>;
+    click(id: string): void;
+    onResponse?: (id: string) => Promise<void>;
     itemLayout(): ItemLayoutFunctions;
 }
 
@@ -21,8 +21,8 @@ export interface ItemLayoutFunctions {
 }
 
 type WmViewFunctionsNonNull = { 
-    hilite: (id: number, on: boolean) => void;
-    add: (id: number, x: number, y: number) => void;
+    hilite: (id: string, on: boolean) => void;
+    add: (id: string, x: number, y: number) => void;
     enable: (value: boolean) => void;
     showText: (value: string) => void;
     updateLevel: (current: number, top: number) => void;
@@ -133,10 +133,10 @@ export class WMGridController implements WMController {
         });
     }
 
-    click(id: number) {
+    click(id: string) {
         this.listeners.forEach(o => o.enable(false));
         for (let item of this.createItems())
-            this.listeners.forEach(o => o.hilite(item.id, false));
+            this.listeners.forEach(o => o.hilite(item.id.toString(), false));
 
         this.api.postResponse(id).then(result => {
             if (result.result.analysis?.isFinished) {
@@ -153,7 +153,7 @@ export class WMGridController implements WMController {
         });
     }
     
-    onResponse?: ((id: number) => Promise<void>) | undefined;
+    onResponse?: ((id: string) => Promise<void>) | undefined;
 }
 
 export class WMCircleController extends WMGridController {

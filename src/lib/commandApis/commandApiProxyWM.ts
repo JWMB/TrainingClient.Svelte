@@ -21,6 +21,11 @@ export class CommandApiProxyWM implements CommandApi {
     }
 
     async postResponse(value: any) {
+        if (typeof value === "string") {
+            if (parseFloat(value).toString() == value) {
+                value = parseFloat(value);
+            }
+        }
         if (typeof value === "number") {
             const analysis = this.analyzeResponse(value);
             let result = <ResponseResultExtended>{

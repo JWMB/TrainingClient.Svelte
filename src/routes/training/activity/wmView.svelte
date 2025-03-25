@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
-	import { onMount } from "svelte";
+	import { onMount, type Component } from "svelte";
+	import SvgCircleButton from "../../../components/svgCircleButton.svelte";
 
     let { controller }: {
         controller: WMController | null,
@@ -32,42 +33,56 @@
         await wmController().start();
     });
 
-    // trying to find ways to re-render items (layout.location might return different values depending on time)
+    // for updating/animating items
     $effect(() => {
-        const interval = setInterval(() => {
-            time = Date.now();
-        }, 25);
+        const interval = setInterval(() => { time = Date.now(); }, 25);
         return () => { clearInterval(interval); };
     });
     let time: number = $state(0);
 
     let enabled: boolean = $state(true);
 
-    const items: {id: number, hilite: boolean, x: number, y: number }[] = $state([]);
+    const items: {id: string, hilite: boolean, x: number, y: number }[] = $state([]);
 
-    function getItem(id: number) {
+    type ComponentAndProps = {
+  		component: Component<any>;
+		[key: string]: any; // for props
+	};
+	// const components: ComponentAndProps[] = $state([]);
+
+    console.log("ASA");
+    const components = $derived(items.map(item => ({
+        component: SvgCircleButton,
+        x: layout?.location(item, time).x,
+        y: layout?.location(item, time).y,
+        size: layout?.size(item, time) || 5,
+        id: item.id.toString(),
+        // onclick: onClick(item),
+        hilite: item.hilite
+     } as ComponentAndProps)));
+
+    function getItem(id: string) {
         const item = items.find(o => o.id == id);
         if (!item) throw new Error(`Incorrect id: ${id}`);
         return item;
     }
-    function userHilite(id: number, hilite: boolean) {
-        getItem(id).hilite = hilite;
-    }
-    function onClick(item: {id: number}) {
-        wmController().click(item.id);
+    function onClick(id: string) {
+        wmController().click(id);
     }
 </script>
 
 <div>
+    <div>{components.length}</div>
     <div id={time.toString()}>
         <svg viewBox="0 0 100 100" height="300px" style="filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7))">
-        {#each items as item}
-            <circle id={`item_${item.id}`}
-                onmouseenter={e => userHilite(item.id, true)} onmouseleave={e => userHilite(item.id, false)}
-                onclick={e => onClick(item)}
-                cx="{layout?.location(item, time).x}%" cy="{layout?.location(item, time).y}%" r="{layout?.size(item, time)}%"
-                fill={item.hilite ? (enabled ? "red" : "cyan") : "blue"} stroke="black" stroke-width="1"
-            />
+        <!-- {#each items as item}
+            <SvgCircleButton id={item.id.toString()} x={layout?.location(item, time).x} y={layout?.location(item, time).y} size={layout?.size(item, time) || 5}
+                hilite={item.hilite}
+                onclick={() => onClick(item)}>
+            </SvgCircleButton>
+        {/each} -->
+        {#each components as c}
+            <c.component {...c} onclick={() => onClick((c as any).id)}/>
         {/each}
         <rect fill="rgba(0,100,100,0.0)" width="100%" height="100%" visibility={enabled ? "hidden" : ""}></rect>
     </svg>

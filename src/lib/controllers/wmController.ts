@@ -75,7 +75,7 @@ export class WMGridController implements WMController {
     async init() {
         // this.onFinished = onFinished;
         for (let item of this.createItems()) {
-            this.listeners.forEach(o => o.add(item.id, item.x, item.y));
+            this.listeners.forEach(o => o.add(item.id.toString(), item.x, item.y));
         }
     }
     async start() {
@@ -107,7 +107,7 @@ export class WMGridController implements WMController {
                         break;
                     case "hilite":
                         const h = cmd as Hilite;
-                        listeners.forEach(o => o.hilite(h.id, h.on));
+                        listeners.forEach(o => o.hilite(h.id.toString(), h.on));
                         break;
                     case "sleep":
                         const s = cmd as Sleep;

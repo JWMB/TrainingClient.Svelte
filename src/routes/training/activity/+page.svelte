@@ -2,7 +2,7 @@
 	import { onMount, type Component } from "svelte";
 	import WmView from "../../../components/wmView.svelte";
 	import { ServiceProvider } from "$lib/serviceProvider";
-	import { WMCircleController, WMGridController, WMMovingController, WMNumbersController, type GameController, type WmViewFunctions } from "$lib/controllers/wmController";
+	import { WMCircleController, WMGridController, WMMovingController, WMNumbersController, type GameController, type UpdateLevelArgs, type UpdateProgressArgs } from "$lib/controllers/wmController";
 	import LevelMeter from "../../../components/levelMeter.svelte";
 	import ProgressMeter from "../../../components/progressMeter.svelte";
 	import { QnAController } from "$lib/controllers/qnaController";
@@ -43,26 +43,21 @@
 		}
 
 		controller.showTextSignal.add(arg => textMessage = arg.value);
-		controller.levelUpdateSignal.add(arg => { levelInfo.current = arg.current; levelInfo.top = arg.top; });
-		controller.progressUpdateSignal.add(arg => {
-			progressInfo.targetPercentage = arg.target;
-			progressInfo.failPercentage = arg.fail,
-			progressInfo.endPercentage = arg.end;
-		});
+		controller.levelUpdateSignal.add(arg => levelInfo = arg);
+		controller.progressUpdateSignal.add(arg => progressInfo = arg);
+
 		await controller.init(() => { alert("Finished - show summary and return to menu")});
 		await controller.start();
-
 	});
-	let levelInfo: { current: number, top: number }
-        = $state({ current: 0, top: 0});
-    let progressInfo: { targetPercentage: number, failPercentage: number, endPercentage: number}
-        = $state({targetPercentage: 0, failPercentage: 0, endPercentage: 0});
+
+	let levelInfo: UpdateLevelArgs = $state({ current: 0, top: 0});
+	let progressInfo: UpdateProgressArgs = $state({ target: 0, fail: 0, end: 0});
     let textMessage: string = $state("");
 
 </script>
 
 <LevelMeter current={levelInfo.current} top={levelInfo.top}></LevelMeter>
-<ProgressMeter target={progressInfo.targetPercentage} fail={progressInfo.failPercentage} end={progressInfo.endPercentage} ></ProgressMeter>
+<ProgressMeter target={progressInfo.target} fail={progressInfo.fail} end={progressInfo.end} ></ProgressMeter>
 
 {#each components as item}
 	<item.component {...item} />

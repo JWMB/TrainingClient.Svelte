@@ -29,10 +29,6 @@ export interface ItemLayoutFunctions {
     size(pt: { x: number, y: number}, time: number): number;
 }
 
-// type WmViewFunctionsNonNull = { 
-//     enable: (value: boolean) => void;
-// };
-
 export type HiliteArgs = { id: string, on: boolean };
 export type AddItemArgs = { item: Item };
 export type EnableArgs = { value: boolean };
@@ -48,13 +44,11 @@ export type Item = {
     type: string
 };
 
-type Nullable<T> = { [K in keyof T]: T[K] | null };
-
-// export type WmViewFunctions = Nullable<WmViewFunctionsNonNull>;
+// type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 export class WMGridController implements WMController {
     protected proxyApi: CommandApi;
-    constructor(protected api: ApiWrapper) { //protected size: {x: number, y: number}
+    constructor(protected api: ApiWrapper) {
         this.proxyApi = new CommandApiProxyWM(api);
     }
 

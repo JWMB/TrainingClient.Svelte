@@ -1,15 +1,24 @@
+import type { ApiWrapper } from "$lib/apiWrapper";
 import type { CommandApi } from "$lib/commandApis/commandApi";
-import type { EnterPhaseResult } from "$lib/nswagclient";
+import { CommandApiProxyWM } from "$lib/commandApis/commandApiProxyWM";
+import { Meta } from "$lib/nswagclient";
 import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
+import { SignalX1, SignalX1Public } from "$lib/signals";
 
 export interface GameController {
-    init(): Promise<void>;
+    init(onFinished?: (() => void) | null): Promise<void>;
     start(): Promise<boolean>;
-    // present(stimuli: IStimuli): Promise<void>;   
+
+    get levelUpdateSignal(): SignalX1Public<UpdateLevelArgs>;
+    get progressUpdateSignal(): SignalX1Public<UpdateProgressArgs>;
+    get showTextSignal(): SignalX1Public<ShowTextArgs>;
+    get hiliteSignal(): SignalX1Public<HiliteArgs>;
+    get addItemSignal(): SignalX1Public<AddItemArgs>;
+    get enableSignal() : SignalX1Public<EnableArgs>;
 }
 
 export interface WMController extends GameController {
-    registerView(functions: WmViewFunctions): void;
+    // registerView(functions: WmViewFunctions): void;
     click(id: string): void;
     onResponse?: (id: string) => Promise<void>;
     itemLayout(): ItemLayoutFunctions;
@@ -20,14 +29,16 @@ export interface ItemLayoutFunctions {
     size(pt: { x: number, y: number}, time: number): number;
 }
 
-type WmViewFunctionsNonNull = { 
-    hilite: (id: string, on: boolean) => void;
-    add: (item: Item) => void;
-    enable: (value: boolean) => void;
-    showText: (value: string) => void;
-    updateLevel: (current: number, top: number) => void;
-    updateProgress: (target: number, fail: number, end: number) => void;
-};
+// type WmViewFunctionsNonNull = { 
+//     enable: (value: boolean) => void;
+// };
+
+export type HiliteArgs = { id: string, on: boolean };
+export type AddItemArgs = { item: Item };
+export type EnableArgs = { value: boolean };
+export type ShowTextArgs = { value: string };
+export type UpdateLevelArgs = { current: number, top: number };
+export type UpdateProgressArgs = { target: number, fail: number, end: number };
 
 export type Item = {
     id: string,
@@ -39,23 +50,76 @@ export type Item = {
 
 type Nullable<T> = { [K in keyof T]: T[K] | null };
 
-export type WmViewFunctions = Nullable<WmViewFunctionsNonNull>;
-
-// export interface WmViewFunctions {
-//     hilite(id: number, on: boolean): void;
-//     add(id: number, x: number, y: number): void;
-//     enable(value: boolean): void;
-//     showText(value: string): void;
-//     updateLevel(current: number, top: number): void;
-//     updateProgress(target: number, fail: number, end: number): void;
-// }
+// export type WmViewFunctions = Nullable<WmViewFunctionsNonNull>;
 
 export class WMGridController implements WMController {
-    constructor(enterPhaseResult: EnterPhaseResult | undefined, protected api: CommandApi) { //protected size: {x: number, y: number}
-        this.size = enterPhaseResult?.phaseDefinition.settings.size || { x: 4, y: 4, z: 1};
+    protected proxyApi: CommandApi;
+    constructor(protected api: ApiWrapper) { //protected size: {x: number, y: number}
+        this.proxyApi = new CommandApiProxyWM(api);
     }
 
-    protected size: {x: number, y: number, z: number};
+    protected size: {x: number, y: number, z: number} = { x: 4, y: 4, z: 1 };
+    protected meta: Meta = new Meta();
+    private onFinished?: (() => void) | null;
+
+    private _signalLevel = new SignalX1<UpdateLevelArgs>();
+    public get levelUpdateSignal() { return this._signalLevel.consumer; }
+
+    private _signalProgress = new SignalX1<UpdateProgressArgs>();
+    public get progressUpdateSignal() { return this._signalProgress.consumer; }
+
+    private _signalShowText = new SignalX1<ShowTextArgs>();
+    public get showTextSignal() { return this._signalShowText.consumer; }
+
+    private _signalHilite = new SignalX1<HiliteArgs>();
+    public get hiliteSignal() { return this._signalHilite.consumer; }
+
+    private _signalAddItem = new SignalX1<AddItemArgs>();
+    public get addItemSignal() { return this._signalAddItem.consumer; }
+
+    private _signalEnable = new SignalX1<EnableArgs>();
+    public get enableSignal() { return this._signalEnable.consumer; }
+
+
+    async init(onFinished?: (() => void) | null) {
+        this.onFinished = onFinished;
+
+        const enterPhaseResultEx = await this.api.enterPhase();
+        if (enterPhaseResultEx) {
+            const size = enterPhaseResultEx.enterPhaseResult.phaseDefinition.settings.size;
+            if (size) this.size = size;
+
+            if (enterPhaseResultEx.meta)
+                this.meta = enterPhaseResultEx.meta;
+        }
+
+        for (let item of this.createItems()) {
+            this._signalAddItem.dispatch({item: item});
+            // this.listeners.forEach(o => o.add(item));
+        }
+
+        this.updateLevelAndProgress(this.meta);
+    }
+
+    private updateLevelAndProgress(meta: Meta) {
+        this._signalLevel.dispatch({ current: meta.level.current, top: meta.level.top});
+        this._signalProgress.dispatch({
+            target: meta.progress.targetPercentage,
+            fail: meta.progress.failPercentage,
+            end: meta.progress.endPercentage,
+        });
+    }
+
+    async start() {
+        const stim = await this.proxyApi.getStimulus();
+        if (!stim) {
+            if (this.onFinished)
+                this.onFinished();
+            return false;
+        }
+        await this.executeSequence(stim.commands);
+        return true;
+    }
 
     protected createItems() {
         return Array.from(Array(this.size.x))
@@ -79,84 +143,53 @@ export class WMGridController implements WMController {
         }
     }
 
-    private onFinished: (() => void) | null = null;
-
-    async init() {
-        // this.onFinished = onFinished;
-        for (let item of this.createItems()) {
-            this.listeners.forEach(o => o.add(item));
-        }
-    }
-    async start() {
-        const stim = await this.api.getStimulus();
-        if (!stim) {
-            if (this.onFinished)
-                this.onFinished();
-            return false;
-        }
-        await this.executeSequence(stim.commands);
-        return true;
-    }
-
     async executeSequence(cmds: Cmd[]) {
         for (let cmd of cmds) {
-            await execute(cmd, this.listeners);
-        }
-
-        function execute(cmd: Cmd, listeners: WmViewFunctionsNonNull[]) {
-            return new Promise<void>((res, rej) => {
-                switch (cmd.type) {
-                    case "text":
-                        const t = cmd as Text;
-                        listeners.forEach(o => o.showText(t.value));
-                        break;
-                    case "enable":
-                        const e = cmd as Enable;
-                        listeners.forEach(o => o.enable(e.value));
-                        break;
-                    case "hilite":
-                        const h = cmd as Hilite;
-                        listeners.forEach(o => o.hilite(h.id.toString(), h.on));
-                        break;
-                    case "sleep":
-                        const s = cmd as Sleep;
-                        setTimeout(res, s.timeMs);
-                        return;
-                    default:
-                };
-                res();
-            })
+            await this.execute(cmd);
         }
     }
 
-    private listeners: WmViewFunctionsNonNull[] = [];
-    //private functions?: WmViewFunctionsNonNull;
-    registerView(functions: WmViewFunctions): void {
-        this.listeners.push(<WmViewFunctionsNonNull>{
-            hilite: functions.hilite != null ? functions.hilite : (id, on) => {},
-            add: functions.add != null ? functions.add : (item) => {},
-            enable: functions.enable != null ? functions.enable : v => {},
-            showText: functions.showText != null ? functions.showText : v => {},
-            updateLevel: functions.updateLevel != null ? functions.updateLevel : v => {},
-            updateProgress: functions.updateProgress != null ? functions.updateProgress : v => {},
-        });
+    private execute(cmd: Cmd) {
+        return new Promise<void>((res, rej) => {
+            switch (cmd.type) {
+                case "text":
+                    const t = cmd as Text;
+                    this._signalShowText.dispatch({ value: t.value });
+                    break;
+                case "enable":
+                    const e = cmd as Enable;
+                    this._signalEnable.dispatch({ value: e.value });
+                    break;
+                case "hilite":
+                    const h = cmd as Hilite;
+                    this._signalHilite.dispatch({id: h.id.toString(), on: h.on});
+                    // listeners.forEach(o => o.hilite(h.id.toString(), h.on));
+                    break;
+                case "sleep":
+                    const s = cmd as Sleep;
+                    setTimeout(res, s.timeMs);
+                    return;
+                default:
+            };
+            res();
+        })
     }
 
     click(id: string) {
-        this.listeners.forEach(o => o.enable(false));
+        this._signalEnable.dispatch({ value: false})
         for (let item of this.createItems())
-            this.listeners.forEach(o => o.hilite(item.id.toString(), false));
+            this._signalHilite.dispatch({ id: item.id.toString(), on: false})
 
-        this.api.postResponse(id).then(result => {
+        this.proxyApi.postResponse(id).then(result => {
             if (result.result.analysis?.isFinished) {
-                this.listeners.forEach(o => o.updateLevel(result.result.meta.level.current, result.result.meta.level.top));
-                this.listeners.forEach(o => o.updateProgress(result.result.meta.progress.targetPercentage, result.result.meta.progress.failPercentage, result.result.meta.progress.endPercentage));
+                this.meta = result.result.meta;
+                this.updateLevelAndProgress(this.meta);
             }
             this.executeSequence(result.commands || []).then(() => {
                 if (result.result.analysis?.isFinished) {
                     this.start();
                 } else {
-                    this.listeners.forEach(o => o.enable(true));
+                    this._signalEnable.dispatch({ value: true})
                 }
             });
         });

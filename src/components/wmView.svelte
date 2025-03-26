@@ -18,23 +18,12 @@
         }
 
         layout = wmController().itemLayout();
-        // very backwards - better if controller can take a view as argument
-        // but how can we type the view? how to use/implement and interface in a svelte component..?
-        wmController().registerView({
-            hilite: (id, on) => getItem(id).hilite = on,
-            add: (item: Item) => items.push({
-                //id: item.id, x: item.x, y: item.y,
-                hilite: false,
-                ...item
-                // type: "circle",
-                // text: ""
-                }),
-            enable: value => enabled = value,
-            showText: null, updateLevel: null, updateProgress: null
-        });
 
-        await wmController().init();
-        await wmController().start();
+        wmController().addItemSignal.add(arg => 
+            items.push({hilite: false, ...arg.item }) 
+        );
+        wmController().enableSignal.add(arg => enabled = arg.value);
+        wmController().hiliteSignal.add(arg => getItem(arg.id).hilite = arg.on);
     });
 
     const items: {id: string, hilite: boolean, x: number, y: number, type: string, text?: string }[] = $state([]);

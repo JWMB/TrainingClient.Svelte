@@ -1,10 +1,11 @@
 <script lang="ts">
-    let { hilite, x, y, size, onclick, id }: {
+    let { hilite, x, y, size, onclick, id, text }: {
         hilite?: boolean,
         x?: number, y?: number,
         size: number,
         onclick: (id: string) => void,
-        id: string
+        id: string,
+        text?: string
     } = $props();
 
     let hover = $state(false);
@@ -17,5 +18,9 @@
         onclick={() => onclick(id)}
         fill={hover ? "red" : (hilite ? "cyan" : "blue")} stroke="black" stroke-width="1"
         />
-    <text fill="white" stroke="black" font-family="Arial, Helvetica, sans-serif" font-size="0.7em" stroke-width={0.2} x={size*0.7} y={size*1.3}>{id}</text>
+    <text fill="white" stroke="black" font-family="Arial, Helvetica, sans-serif" 
+        font-size="0.7em" stroke-width={0.2} x={size*0.7} y={size*1.3}
+        pointer-events="none">
+        {text}
+    </text>
 </g>

@@ -188,7 +188,7 @@ export class ApiClient {
      * @param body (optional) 
      * @return OK
      */
-    enterPhase(body: any | null | undefined): Promise<EnterPhaseResult> {
+    enterPhase(body: any | null | undefined): Promise<EnterPhaseResultEx> {
         let url_ = this.baseUrl + "/UserSession/enterPhase";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -208,14 +208,14 @@ export class ApiClient {
         });
     }
 
-    protected processEnterPhase(response: Response): Promise<EnterPhaseResult> {
+    protected processEnterPhase(response: Response): Promise<EnterPhaseResultEx> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = EnterPhaseResult.fromJS(resultData200);
+            result200 = EnterPhaseResultEx.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -223,7 +223,7 @@ export class ApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<EnterPhaseResult>(null as any);
+        return Promise.resolve<EnterPhaseResultEx>(null as any);
     }
 
     /**
@@ -574,6 +574,62 @@ export class EnterPhaseResult implements IEnterPhaseResult {
 export interface IEnterPhaseResult {
     gameRuns: GameRunStats[];
     phaseDefinition: PhaseDefinition;
+
+    [key: string]: any;
+}
+
+export class EnterPhaseResultEx implements IEnterPhaseResultEx {
+    enterPhaseResult!: EnterPhaseResult;
+    meta!: Meta;
+
+    [key: string]: any;
+
+    constructor(data?: IEnterPhaseResultEx) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+        if (!data) {
+            this.enterPhaseResult = new EnterPhaseResult();
+            this.meta = new Meta();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.enterPhaseResult = _data["enterPhaseResult"] ? EnterPhaseResult.fromJS(_data["enterPhaseResult"]) : new EnterPhaseResult();
+            this.meta = _data["meta"] ? Meta.fromJS(_data["meta"]) : new Meta();
+        }
+    }
+
+    static fromJS(data: any): EnterPhaseResultEx {
+        data = typeof data === 'object' ? data : {};
+        let result = new EnterPhaseResultEx();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["enterPhaseResult"] = this.enterPhaseResult ? this.enterPhaseResult.toJSON() : <any>undefined;
+        data["meta"] = this.meta ? this.meta.toJSON() : <any>undefined;
+        return data;
+    }
+}
+
+export interface IEnterPhaseResultEx {
+    enterPhaseResult: EnterPhaseResult;
+    meta: Meta;
 
     [key: string]: any;
 }

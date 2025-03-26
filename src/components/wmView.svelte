@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
+	import { type Item, type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
 	import { onMount, type Component } from "svelte";
-	import SvgCircleButton from "../../../components/svgCircleButton.svelte";
-	import SvgNumberButton from "../../../components/svgNumberButton.svelte";
+	import SvgCircleButton from "./svgCircleButton.svelte";
+	import SvgNumberButton from "./svgNumberButton.svelte";
 
     let { controller }: {
         controller: WMController | null,
@@ -22,9 +22,12 @@
         // but how can we type the view? how to use/implement and interface in a svelte component..?
         wmController().registerView({
             hilite: (id, on) => getItem(id).hilite = on,
-            add: (id, x, y) => items.push({
-                id: id, x, y,
-                hilite: false
+            add: (item: Item) => items.push({
+                //id: item.id, x: item.x, y: item.y,
+                hilite: false,
+                ...item
+                // type: "circle",
+                // text: ""
                 }),
             enable: value => enabled = value,
             showText: null, updateLevel: null, updateProgress: null
@@ -33,6 +36,8 @@
         await wmController().init();
         await wmController().start();
     });
+
+    const items: {id: string, hilite: boolean, x: number, y: number, type: string, text?: string }[] = $state([]);
 
     // for updating/animating items
     $effect(() => {
@@ -43,20 +48,18 @@
 
     let enabled: boolean = $state(true);
 
-    const items: {id: string, hilite: boolean, x: number, y: number }[] = $state([]);
-
     type ComponentAndProps = {
   		component: Component<any>;
 		[key: string]: any; // for props
 	};
 
-    console.log("ASA");
     const components = $derived(items.map(item => ({
-        component: SvgCircleButton, //SvgCircleButton SvgNumberButton
+        component: item.type == "number" ? SvgNumberButton : SvgCircleButton,
         x: layout?.location(item, time).x,
         y: layout?.location(item, time).y,
         size: layout?.size(item, time) || 5,
         id: item.id.toString(),
+        text: item.text,
         // not possible, state change... onclick: onClick(item),
         hilite: item.hilite
      } as ComponentAndProps)));

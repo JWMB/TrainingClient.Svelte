@@ -10,13 +10,13 @@ export class CommandApiProxyWM implements CommandApi {
     private userResponse: number[] = [];
 
     async getStimulus() {
-        const response = await this.api.nextStimuli(); //nextStimuliAndSolution
+        const response = await this.api.nextStimuliAndSolution(); //nextStimuliAndSolution nextStimuli
         if (!response) {
             return null;
         }
         this.userResponse = [];
-        //const sequence = (<any>response.stimuli).sequence as number[]; // TODO: typing
-        const sequence = (<any>response).sequence as number[];
+        const sequence = (<any>response.stimuli).sequence as number[]; // TODO: typing
+        //const sequence = (<any>response).sequence as number[];
         this.solution = response.solution?.values || sequence; // TODO: no - get from server, could be reversed or otherwise manipulated 
         // return { stim: response.stimuli, solution: response.solution, commands: this.getSequenceCommands(sequence) };
         return { stim: response.stimuli, solution: this.solution, commands: this.getSequenceCommands(sequence) };

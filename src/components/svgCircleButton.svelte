@@ -1,10 +1,11 @@
 <script lang="ts">
-    let { hilite, x, y, size, onclick, id }: {
+    let { hilite, x, y, size, onclick, id, text }: {
         hilite?: boolean,
         x?: number, y?: number,
         size: number,
         onclick: (id: string) => void,
-        id: string
+        id: string,
+        text?: string
     } = $props();
 
     let hover = $state(false);

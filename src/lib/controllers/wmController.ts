@@ -22,11 +22,19 @@ export interface ItemLayoutFunctions {
 
 type WmViewFunctionsNonNull = { 
     hilite: (id: string, on: boolean) => void;
-    add: (id: string, x: number, y: number) => void;
+    add: (item: Item) => void;
     enable: (value: boolean) => void;
     showText: (value: string) => void;
     updateLevel: (current: number, top: number) => void;
     updateProgress: (target: number, fail: number, end: number) => void;
+};
+
+export type Item = {
+    id: string,
+    x: number,
+    y: number,
+    text?: string,
+    type: string
 };
 
 type Nullable<T> = { [K in keyof T]: T[K] | null };
@@ -49,10 +57,10 @@ export class WMGridController implements WMController {
 
     protected size: {x: number, y: number, z: number};
 
-    createItems() {
+    protected createItems() {
         return Array.from(Array(this.size.x))
             .map((_, x) => Array.from(Array(this.size.y))
-                .map((_, y) => ({ x, y, id: x + y * this.size.x })))
+                .map((_, y) => (<Item>{ x, y, id: `${x + y * this.size.x}`, text: "", type: "circle" })))
         .flat();
     }
 
@@ -72,10 +80,11 @@ export class WMGridController implements WMController {
     }
 
     private onFinished: (() => void) | null = null;
+
     async init() {
         // this.onFinished = onFinished;
         for (let item of this.createItems()) {
-            this.listeners.forEach(o => o.add(item.id.toString(), item.x, item.y));
+            this.listeners.forEach(o => o.add(item));
         }
     }
     async start() {
@@ -125,7 +134,7 @@ export class WMGridController implements WMController {
     registerView(functions: WmViewFunctions): void {
         this.listeners.push(<WmViewFunctionsNonNull>{
             hilite: functions.hilite != null ? functions.hilite : (id, on) => {},
-            add: functions.add != null ? functions.add : (id, x, y) => {},
+            add: functions.add != null ? functions.add : (item) => {},
             enable: functions.enable != null ? functions.enable : v => {},
             showText: functions.showText != null ? functions.showText : v => {},
             updateLevel: functions.updateLevel != null ? functions.updateLevel : v => {},
@@ -179,6 +188,14 @@ export class WMCircleController extends WMGridController {
 }
 
 export class WMNumbersController extends WMGridController {
+    protected createItems() {
+        const items = super.createItems();
+        for (let item of items) {
+            item.text = `${parseFloat(item.id) + 1}`;
+            item.type = "number"
+        }
+        return items;
+    }
 }
 
 export class WMMovingController extends WMGridController {

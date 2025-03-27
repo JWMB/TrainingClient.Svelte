@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type Item, type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
+	import { type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
 	import { onMount, type Component } from "svelte";
 	import SvgCircleButton from "./svgCircleButton.svelte";
 	import SvgNumberButton from "./svgNumberButton.svelte";
@@ -8,22 +8,22 @@
         controller: WMController | null,
     } = $props();
 
-    function wmController() { return controller as WMController; }
+    function typedController() { return controller as WMController; }
     let layout: ItemLayoutFunctions | null;
 
     onMount(async () => {
-        if (!wmController()) {
+        if (!typedController()) {
             console.warn("No ctrl");
             return;
         }
 
-        layout = wmController().itemLayout();
+        layout = typedController().itemLayout();
 
-        wmController().addItemSignal.add(arg => 
-            items.push({hilite: false, ...arg.item }) 
-        );
-        wmController().enableSignal.add(arg => enabled = arg.value);
-        wmController().hiliteSignal.add(arg => getItem(arg.id).hilite = arg.on);
+        typedController().signals.addItem.add(arg => items.push({hilite: false, ...arg.item }) );
+        typedController().signals.enable.add(arg => enabled = arg.value);
+        typedController().signals.hilite.add(arg => getItem(arg.id).hilite = arg.on);
+
+        // console.log("view inited");
     });
 
     const items: {id: string, hilite: boolean, x: number, y: number, type: string, text?: string }[] = $state([]);
@@ -59,7 +59,7 @@
         return item;
     }
     function onClick(id: string) {
-        wmController().click(id);
+        typedController().click(id);
     }
 </script>
 

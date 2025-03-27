@@ -2,25 +2,11 @@ import type { ApiWrapper } from "$lib/apiWrapper";
 import type { CommandApi } from "$lib/commandApis/commandApi";
 import { CommandApiProxyWM } from "$lib/commandApis/commandApiProxyWM";
 import { Meta } from "$lib/nswagclient";
-import type { Cmd, Hilite, Sleep, Enable, Text } from "$lib/presentationCommands";
-import { SignalX1, SignalX1Public } from "$lib/signals";
-
-export interface GameController {
-    init(onFinished?: (() => void) | null): Promise<void>;
-    start(): Promise<boolean>;
-
-    get levelUpdateSignal(): SignalX1Public<UpdateLevelArgs>;
-    get progressUpdateSignal(): SignalX1Public<UpdateProgressArgs>;
-    get showTextSignal(): SignalX1Public<ShowTextArgs>;
-    get hiliteSignal(): SignalX1Public<HiliteArgs>;
-    get addItemSignal(): SignalX1Public<AddItemArgs>;
-    get enableSignal() : SignalX1Public<EnableArgs>;
-}
+import { CommandSequenceExecuter, type Cmd } from "$lib/presentationCommands";
+import { GameSignalsBase, type GameController, type GameSignalsPublic, type Item } from "./gameController";
 
 export interface WMController extends GameController {
-    // registerView(functions: WmViewFunctions): void;
     click(id: string): void;
-    onResponse?: (id: string) => Promise<void>;
     itemLayout(): ItemLayoutFunctions;
 }
 
@@ -29,21 +15,6 @@ export interface ItemLayoutFunctions {
     size(pt: { x: number, y: number}, time: number): number;
 }
 
-export type HiliteArgs = { id: string, on: boolean };
-export type AddItemArgs = { item: Item };
-export type EnableArgs = { value: boolean };
-export type ShowTextArgs = { value: string };
-export type UpdateLevelArgs = { current: number, top: number };
-export type UpdateProgressArgs = { target: number, fail: number, end: number };
-
-export type Item = {
-    id: string,
-    x: number,
-    y: number,
-    text?: string,
-    type: string
-};
-
 // type Nullable<T> = { [K in keyof T]: T[K] | null };
 
 export class WMGridController implements WMController {
@@ -51,33 +22,15 @@ export class WMGridController implements WMController {
     constructor(protected api: ApiWrapper) {
         this.proxyApi = new CommandApiProxyWM(api);
     }
+    protected _signals = new GameSignalsBase();
+    get signals(): GameSignalsPublic { return this._signals; }
 
     protected size: {x: number, y: number, z: number} = { x: 4, y: 4, z: 1 };
     protected meta: Meta = new Meta();
-    private onFinished?: (() => void) | null;
-
-    private _signalLevel = new SignalX1<UpdateLevelArgs>();
-    public get levelUpdateSignal() { return this._signalLevel.consumer; }
-
-    private _signalProgress = new SignalX1<UpdateProgressArgs>();
-    public get progressUpdateSignal() { return this._signalProgress.consumer; }
-
-    private _signalShowText = new SignalX1<ShowTextArgs>();
-    public get showTextSignal() { return this._signalShowText.consumer; }
-
-    private _signalHilite = new SignalX1<HiliteArgs>();
-    public get hiliteSignal() { return this._signalHilite.consumer; }
-
-    private _signalAddItem = new SignalX1<AddItemArgs>();
-    public get addItemSignal() { return this._signalAddItem.consumer; }
-
-    private _signalEnable = new SignalX1<EnableArgs>();
-    public get enableSignal() { return this._signalEnable.consumer; }
 
 
-    async init(onFinished?: (() => void) | null) {
-        this.onFinished = onFinished;
-
+    async init() {
+        // console.log("init");
         const enterPhaseResultEx = await this.api.enterPhase();
         if (enterPhaseResultEx) {
             const size = enterPhaseResultEx.enterPhaseResult.phaseDefinition.settings.size;
@@ -88,16 +41,15 @@ export class WMGridController implements WMController {
         }
 
         for (let item of this.createItems()) {
-            this._signalAddItem.dispatch({item: item});
-            // this.listeners.forEach(o => o.add(item));
+            this._signals._addItem.dispatch({item: item});
         }
 
         this.updateLevelAndProgress(this.meta);
     }
 
     private updateLevelAndProgress(meta: Meta) {
-        this._signalLevel.dispatch({ current: meta.level.current, top: meta.level.top});
-        this._signalProgress.dispatch({
+        this._signals._levelUpdate.dispatch({ current: meta.level.current, top: meta.level.top});
+        this._signals._progressUpdate.dispatch({
             target: meta.progress.targetPercentage,
             fail: meta.progress.failPercentage,
             end: meta.progress.endPercentage,
@@ -107,12 +59,16 @@ export class WMGridController implements WMController {
     async start() {
         const stim = await this.proxyApi.getStimulus();
         if (!stim) {
-            if (this.onFinished)
-                this.onFinished();
+            this._signals._completed.dispatch({ });
             return false;
         }
-        await this.executeSequence(stim.commands);
+        await this.executeCommandSequence(stim.commands);
         return true;
+    }
+
+    protected async executeCommandSequence(cmds: Cmd[]) {
+        const executer = new CommandSequenceExecuter(this._signals);
+        await executer.executeSequence(cmds);
     }
 
     protected createItems() {
@@ -137,59 +93,26 @@ export class WMGridController implements WMController {
         }
     }
 
-    async executeSequence(cmds: Cmd[]) {
-        for (let cmd of cmds) {
-            await this.execute(cmd);
-        }
-    }
-
-    private execute(cmd: Cmd) {
-        return new Promise<void>((res, rej) => {
-            switch (cmd.type) {
-                case "text":
-                    const t = cmd as Text;
-                    this._signalShowText.dispatch({ value: t.value });
-                    break;
-                case "enable":
-                    const e = cmd as Enable;
-                    this._signalEnable.dispatch({ value: e.value });
-                    break;
-                case "hilite":
-                    const h = cmd as Hilite;
-                    this._signalHilite.dispatch({id: h.id.toString(), on: h.on});
-                    // listeners.forEach(o => o.hilite(h.id.toString(), h.on));
-                    break;
-                case "sleep":
-                    const s = cmd as Sleep;
-                    setTimeout(res, s.timeMs);
-                    return;
-                default:
-            };
-            res();
-        })
-    }
 
     click(id: string) {
-        this._signalEnable.dispatch({ value: false})
+        this._signals._enable.dispatch({ value: false})
         for (let item of this.createItems())
-            this._signalHilite.dispatch({ id: item.id.toString(), on: false})
+            this._signals._hilite.dispatch({ id: item.id.toString(), on: false})
 
         this.proxyApi.postResponse(id).then(result => {
             if (result.result.analysis?.isFinished) {
                 this.meta = result.result.meta;
                 this.updateLevelAndProgress(this.meta);
             }
-            this.executeSequence(result.commands || []).then(() => {
+            this.executeCommandSequence(result.commands || []).then(() => {
                 if (result.result.analysis?.isFinished) {
                     this.start();
                 } else {
-                    this._signalEnable.dispatch({ value: true})
+                    this._signals._enable.dispatch({ value: true})
                 }
             });
         });
     }
-    
-    onResponse?: ((id: string) => Promise<void>) | undefined;
 }
 
 export class WMCircleController extends WMGridController {

@@ -2,11 +2,12 @@
 	import { onMount, type Component } from "svelte";
 	import WmView from "../../../components/wmView.svelte";
 	import { ServiceProvider } from "$lib/serviceProvider";
-	import { WMCircleController, WMGridController, WMMovingController, WMNumbersController, type GameController, type UpdateLevelArgs, type UpdateProgressArgs } from "$lib/controllers/wmController";
+	import { WMCircleController, WMGridController, WMMovingController, WMNumbersController } from "$lib/controllers/wmController";
 	import LevelMeter from "../../../components/levelMeter.svelte";
 	import ProgressMeter from "../../../components/progressMeter.svelte";
 	import { QnAController } from "$lib/controllers/qnaController";
 	import QnaView from "../../../components/qnaView.svelte";
+	import { type GameController, type UpdateLevelArgs, type UpdateProgressArgs } from "$lib/controllers/gameController";
 
 	let api = ServiceProvider.instance.apiWrapper;
 
@@ -26,7 +27,7 @@
 		const conf = await api.enterGame(gameId); // console.log('conf', conf);
 
 		if (gameId == "QnA") {
-			controller = new QnAController();
+			controller = new QnAController(api);
 			components.push({ component: QnaView, controller: controller });
 
 		} else if (gameId.indexOf("WM_") == 0) {
@@ -42,11 +43,12 @@
 			throw new Error(`No implementation for game ${gameId}`);
 		}
 
-		controller.showTextSignal.add(arg => textMessage = arg.value);
-		controller.levelUpdateSignal.add(arg => levelInfo = arg);
-		controller.progressUpdateSignal.add(arg => progressInfo = arg);
+		controller.signals.showText.add(arg => textMessage = arg.value);
+		controller.signals.levelUpdate.add(arg => levelInfo = arg);
+		controller.signals.progressUpdate.add(arg => progressInfo = arg);
+		controller.signals.completed.add(arg => alert("Finished - show summary and return to menu"));
 
-		await controller.init(() => { alert("Finished - show summary and return to menu")});
+		await controller.init();
 		await controller.start();
 	});
 

@@ -37,7 +37,7 @@ export class CommandApiProxyWM implements CommandApi {
             if (analysis.isFinished) {
                 const tmp = await this.api.registerResponse(this.userResponse);
                 if (!tmp) throw new Error("");
-                console.log("respres.meta", tmp.meta.level, tmp.meta.progress);
+                //console.log("respres.meta", tmp.meta.level, tmp.meta.progress);
                 result = tmp;
             }
             const commands = analysis.isCorrect

@@ -15,8 +15,6 @@ export interface ItemLayoutFunctions {
     size(pt: { x: number, y: number}, time: number): number;
 }
 
-// type Nullable<T> = { [K in keyof T]: T[K] | null };
-
 export class WMGridController implements WMController {
     protected proxyApi: CommandApi;
     constructor(protected api: ApiWrapper) {
@@ -92,7 +90,6 @@ export class WMGridController implements WMController {
             }
         }
     }
-
 
     click(id: string) {
         this._signals._enable.dispatch({ value: false})

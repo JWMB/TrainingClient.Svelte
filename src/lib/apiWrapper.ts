@@ -1,26 +1,4 @@
-// import { createPostsClient, type PostsClient } from './client/postsClient';
-// import {
-// 	AnonymousAuthenticationProvider,
-// 	ApiKeyAuthenticationProvider,
-// 	ApiKeyLocation
-// } from '@microsoft/kiota-abstractions';
-// import { FetchRequestAdapter } from '@microsoft/kiota-http-fetchlibrary';
-
-import { ApiClient, LoginResult } from "./nswagclient";
-
-// let apiInstance: ApiWrapper | null = null;
-// export function initApi(baseUrl: string) {
-// 	if (ApiWrapper.instance) {
-// 		throw new Error('ApiWrapper already instanciated');
-// 	}
-// 	apiInstance = new ApiWrapper(baseUrl);
-// }
-// export function getApi() {
-// 	if (!apiInstance) {
-// 		throw new Error('ApiWrapper not initialized');
-// 	}
-// 	return apiInstance;
-// }
+import { ApiClient } from "./nswagclient";
 
 export class ApiWrapper {
 	static instance: ApiWrapper;
@@ -29,7 +7,7 @@ export class ApiWrapper {
 
 	constructor(private baseUrl: string) {
 		if (ApiWrapper.instance) {
-			throw new Error('ApiWrapper already instanciated');
+			throw new Error('ApiWrapper already instantiated');
 		}
 		ApiWrapper.instance = this;
 
@@ -52,20 +30,13 @@ export class ApiWrapper {
 				headers.set("sessionId", result.sessionId);
 				init.headers = headers;
 				init.cache = "no-cache";
-				// console.log("init.headers!", init.headers);
                 return fetch(url, init);
              }});
 
 		return result;
 	}
 
-	async getAvailableActivities() {
-		return await this.call(() =>this.client.availableGames());
-		// const result = await this.callWithErrorMessage(
-		// 	async () => await this.client.availableGames()
-		// );
-		// return result;
-	}
+	async getAvailableActivities() { return await this.call(() =>this.client.availableGames()); }
 	async enterGame(gameId: string) { return await this.call(() =>this.client.enterGame(gameId)); }
 	async enterPhase() { return await this.call(() => this.client.enterPhase(null)); }
 	async nextStimuli() { return await this.call(() => this.client.nextStimuli()); }

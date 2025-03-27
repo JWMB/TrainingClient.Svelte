@@ -5,28 +5,7 @@ export interface GameController {
     start(): Promise<boolean>;
 
     get signals(): GameSignalsPublic;
-    // get levelUpdateSignal(): SignalX1Public<UpdateLevelArgs>;
-    // get progressUpdateSignal(): SignalX1Public<UpdateProgressArgs>;
-    // get showTextSignal(): SignalX1Public<ShowTextArgs>;
-    // get enableSignal(): SignalX1Public<EnableArgs>;
-    // get completedSignal(): SignalX1Public<CompletedArgs>;
-
-    // get hiliteSignal(): SignalX1Public<HiliteArgs>;
-    // get addItemSignal(): SignalX1Public<AddItemArgs>;
 }
-
-// export abstract class GameControllerBase implements GameController {
-//     abstract init(): Promise<void>;
-//     abstract start(): Promise<boolean>;
-
-//     get completedSignal(): SignalX1Public<CompletedArgs> { throw new Error("Method not implemented."); }
-//     get enableSignal(): SignalX1Public<EnableArgs> { throw new Error("Method not implemented."); }
-//     get addItemSignal(): SignalX1Public<AddItemArgs> { throw new Error("Method not implemented."); }
-//     get hiliteSignal(): SignalX1Public<HiliteArgs> { throw new Error("Method not implemented."); }
-//     get showTextSignal(): SignalX1Public<ShowTextArgs> { throw new Error("Method not implemented."); }
-//     get progressUpdateSignal(): SignalX1Public<UpdateProgressArgs> { throw new Error("Method not implemented."); }
-//     get levelUpdateSignal(): SignalX1Public<UpdateLevelArgs> { throw new Error("Method not implemented."); }
-// }
 
 export type HiliteArgs = { id: string, on: boolean };
 export type AddItemArgs = { item: Item };
@@ -44,6 +23,7 @@ export type Item = {
     type: string
 };
 
+// Separate public and internal signals so consumers can't access e.g. dispatch()
 export interface GameSignalsPublic {
     get levelUpdate(): SignalX1Public<UpdateLevelArgs>;
     get progressUpdate(): SignalX1Public<UpdateProgressArgs>;
@@ -63,14 +43,6 @@ export interface GameSignalsInternal {
 
     _hilite: SignalX1<HiliteArgs>;
     _addItem: SignalX1<AddItemArgs>;
-    // get _levelUpdate(): SignalX1<UpdateLevelArgs>;
-    // get _progressUpdate(): SignalX1<UpdateProgressArgs>;
-    // get _showText(): SignalX1<ShowTextArgs>;
-    // get _enable(): SignalX1<EnableArgs>;
-    // get _completed(): SignalX1<CompletedArgs>;
-
-    // get _hilite(): SignalX1<HiliteArgs>;
-    // get _addItem(): SignalX1<AddItemArgs>;
 }
 
 

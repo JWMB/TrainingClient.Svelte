@@ -1,4 +1,5 @@
 import { ApiWrapperAutologin, ApiWrapper } from "./apiWrapper";
+import { PUBLIC_BASE_URL, PUBLIC_AUTOLOGIN_USERNAME } from '$env/static/public';
 
 export class ServiceProvider {
     private static _instance: ServiceProvider;
@@ -13,8 +14,10 @@ export class ServiceProvider {
     get apiWrapper(): ApiWrapper {
         if (!this._apiWrapper) {
             // TODO: from env files
-            const baseUrl = "https://localhost:7206";
-            const autologinUsername = "testuser";
+            const baseUrl = PUBLIC_BASE_URL;
+            const autologinUsername = PUBLIC_AUTOLOGIN_USERNAME;
+            // const baseUrl = "https://localhost:7206";
+            // const autologinUsername = "testuser";
             if (autologinUsername) {
                 this._apiWrapper = new ApiWrapperAutologin(baseUrl, autologinUsername);
             } else {

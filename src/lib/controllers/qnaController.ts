@@ -1,9 +1,18 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
+import { SignalX0, type SignalX0Public } from "$lib/signals";
 import { GameSignalsBase, type GameController, type GameSignalsPublic } from "./gameController";
 
+export interface GameSignalsPublicQnA extends GameSignalsPublic {
+    get clear(): SignalX0Public;
+}
+export class GameSignalsQnA extends GameSignalsBase implements GameSignalsPublicQnA {
+    _clear = new SignalX0();
+    get clear() { return this._clear.consumer; };
+}
+
 export class QnAController implements GameController {
-    private _signals = new GameSignalsBase();
-    get signals(): GameSignalsPublic { return this._signals; }
+    private _signals = new GameSignalsQnA();
+    get signals(): GameSignalsPublicQnA { return this._signals; }
 
     constructor(protected api: ApiWrapper) {
     }
@@ -15,28 +24,29 @@ export class QnAController implements GameController {
     async start() {
         const stimSol = await this.api.nextStimuliAndSolution();
         // console.log("stims", stimSol);
-        if (stimSol) {
-            this._signals._addItem.dispatch({
-                item: {
-                    id: "", x: 0, y: 0,
-                    text: stimSol.stimuli.problemString,
-                    type: "question"
-                }
-            });
-            if (stimSol.solution?.values) {
-                if (stimSol.solution.values.length === 1) {
-                    this._signals._addItem.dispatch({
-                        item: { id: "", x: 1, y: 0, text: "", type: "input" }
-                    });
-                } else {
-                    stimSol.solution.values.forEach(v => {
-                        this._signals._addItem.dispatch({
-                            item: { id: "", x: 1, y: 0, text: v, type: "alternative" }
-                        });
-                    });
-                }
-            }
+        if (!stimSol) {
+            throw new Error("No stimulus");
         }
+
+        this._signals._addItem.dispatch({
+            item: {
+                id: "", x: 0, y: 0,
+                text: stimSol.stimuli.question,
+                type: "question"
+            }
+        });
+        if (stimSol.stimuli.alternatives.length) {
+            (stimSol.stimuli.alternatives as string[]).forEach(v => {
+                this._signals._addItem.dispatch({
+                    item: { id: "", x: 1, y: 0, text: v, type: "alternative" }
+                });
+            });
+        } else {
+            this._signals._addItem.dispatch({
+                item: { id: "", x: 1, y: 0, text: "", type: "input" }
+            });
+        }
+        
         return true;
     }
 
@@ -52,6 +62,7 @@ export class QnAController implements GameController {
                 });
             }
             if (result?.analysis?.isFinished) {
+                this._signals._clear.dispatch();
                 this.start();
             }
         });

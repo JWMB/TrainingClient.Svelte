@@ -10,6 +10,13 @@ export class SignalXBase {
         }
     }
 }
+
+export class SignalX0Public {
+    constructor(private signal: SignalX0) {
+    }
+    add(func: () => void) { this.signal.add(func); }
+    remove(func: () => void) { this.signal.remove(func); }
+}
 export class SignalX0 extends SignalXBase {
     add(func: () => void) {
         this.registered.push(<Function>func);
@@ -22,6 +29,7 @@ export class SignalX0 extends SignalXBase {
             (<() => void>this.registered[i])();
         }
     }
+    get consumer() { return new SignalX0Public(this); }
 }
 
 export class SignalX1Public<T1> {

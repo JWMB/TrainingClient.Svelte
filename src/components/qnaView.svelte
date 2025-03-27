@@ -18,6 +18,9 @@
             return;
         }
 
+        typedController().signals.clear.add(() => {
+            alternatives = [];
+        });
         typedController().signals.addItem.add(arg => {
             // console.log("addItem", arg.item);
             if (arg.item.type === "question") {
@@ -32,10 +35,11 @@
         // typedController().signals.enable.add(arg => enabled = arg.value);
     });
 
+    const respond = (answer: string) => typedController().respond(answer);
     const onKeydown = (key: string) => {
         if (key === "Enter") {
             // console.log("AA", answer);
-            typedController().respond(answer);
+            respond(answer);
         }
     }
 </script>
@@ -48,11 +52,11 @@
     </div>
 
     <div>
+        <div>Your answer:</div>
         {#each alternatives as alt}
-            <h3>{alt}</h3>            
+            <button onclick={() => respond(alt)}>{alt}</button>         
         {/each}
         {#if alternatives.length === 0}
-            <div>Your answer:</div>
             <input onkeydown={e => onKeydown(e.key)} type="text" bind:value={answer}/>
         {/if}
     </div>

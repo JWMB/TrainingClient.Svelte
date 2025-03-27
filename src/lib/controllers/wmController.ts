@@ -26,7 +26,6 @@ export class WMGridController implements WMController {
     protected size: {x: number, y: number, z: number} = { x: 4, y: 4, z: 1 };
     protected meta: Meta = new Meta();
 
-
     async init() {
         // console.log("init");
         const enterPhaseResultEx = await this.api.enterPhase();

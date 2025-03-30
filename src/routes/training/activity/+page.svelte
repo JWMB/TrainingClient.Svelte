@@ -9,6 +9,8 @@
 	import QnaView from "../../../components/qnaView.svelte";
 	import { type GameController, type UpdateLevelArgs, type UpdateProgressArgs } from "$lib/controllers/gameController";
 	import { setBackground } from "$lib/utils";
+	import { NVRController } from "$lib/controllers/nvrController";
+	import NvrView from "../../../components/nvrView.svelte";
 
 	let api = ServiceProvider.instance.apiWrapper;
 
@@ -30,6 +32,9 @@
 		if (gameId == "QnA") {
 			controller = new QnAController(api);
 			components.push({ component: QnaView, controller: controller });
+		} else if (gameId.indexOf("NVR_") == 0) {
+			controller = new NVRController(api);
+			components.push({ component: NvrView, controller: controller });
 
 		} else if (gameId.indexOf("WM_") == 0) {
 			const wm = gameId == "WM_circle" ? new WMCircleController(api)
@@ -44,13 +49,15 @@
 			throw new Error(`No implementation for game ${gameId}`);
 		}
 
-		controller.signals.showText.add(arg => textMessage = arg.value);
-		controller.signals.levelUpdate.add(arg => levelInfo = arg);
-		controller.signals.progressUpdate.add(arg => progressInfo = arg);
-		controller.signals.completed.add(arg => alert("Finished - show summary and return to menu"));
+		if (controller) {
+			controller.signals.showText.add(arg => textMessage = arg.value);
+			controller.signals.levelUpdate.add(arg => levelInfo = arg);
+			controller.signals.progressUpdate.add(arg => progressInfo = arg);
+			controller.signals.completed.add(arg => alert("Finished - show summary and return to menu"));
 
-		await controller.init();
-		await controller.start();
+			await controller.init();
+			await controller.start();
+		}
 	});
 
 	let levelInfo: UpdateLevelArgs = $state({ current: 0, top: 0});

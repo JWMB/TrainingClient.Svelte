@@ -14,8 +14,8 @@ export class QnAController implements GameController {
     private _signals = new GameSignalsQnA();
     get signals(): GameSignalsPublicQnA { return this._signals; }
 
-    constructor(protected api: ApiWrapper) {
-    }
+    constructor(protected api: ApiWrapper) { }
+
     async init() {
         const enterPhaseResultEx = await this.api.enterPhase();
         if (enterPhaseResultEx) {

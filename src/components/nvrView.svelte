@@ -7,7 +7,7 @@
 
     function typedController() { return controller as NVRController; }
 
-    type Card = { svg: string, id: number };
+    type Card = { svg: string, id: number, x: number, y: number };
 
     let questionCards: Card[] = $state([]);
     let answerCards: Card[] = $state([]);
@@ -25,7 +25,7 @@
         // });
         typedController().signals.addItem.add(arg => {
             // console.log("addItem", arg.item);
-            const card: Card = { id: parseInt(arg.item.id, 10), svg: arg.item.text || "" };
+            const card: Card = { id: parseInt(arg.item.id, 10), x: arg.item.x, y: arg.item.y, svg: arg.item.text || "" };
             if (arg.item.type == "Q") {
                 questionCards.push(card);
             } else {
@@ -47,13 +47,17 @@
 <div>
     <div>
         {#each questionCards as card}
+        <div style="outline: solid; box-shadow: 5px 5px 5px gray; position: absolute; left:{card.x * 120}px; top:{100 + card.y * 120}px;">
             {@html card.svg}
+        </div>
         {/each}
     </div>
 
     <div>
         {#each answerCards as card}
+        <div style="outline: solid; box-shadow: 5px 5px 5px gray; position: absolute; left:{card.x * 120}px; top:{100 + ((card.y + 2) * 120)}px;">
             {@html card.svg}
+        </div>
         {/each}
     </div>
 

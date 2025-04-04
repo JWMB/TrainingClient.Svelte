@@ -23,12 +23,12 @@ export class NVRController implements GameController {
         if (!stimSol) {
             throw new Error("No stimulus");
         }
-        //stimSol.stimuli.answerCardsSvg
-        for (let c of stimSol.stimuli.questionCardsSvg) {
-            this._signals._addItem.dispatch({item: { id: "", x: 0, y: 0, text: c, type: "Q" }});
+        console.log("stimSol.stimuli", stimSol.stimuli);
+        for (let c of stimSol.stimuli.questionCards) {
+            this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "Q" }});
         }
-        for (let c of stimSol.stimuli.answerCardsSvg) {
-            this._signals._addItem.dispatch({item: { id: "", x: 0, y: 0, text: c, type: "A" }});
+        for (let c of stimSol.stimuli.answerCards) {
+            this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "A" }});
         }
 
         return true;

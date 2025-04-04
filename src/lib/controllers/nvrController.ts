@@ -24,12 +24,16 @@ export class NVRController implements GameController {
             throw new Error("No stimulus");
         }
         console.log("stimSol.stimuli", stimSol.stimuli);
-        for (let c of stimSol.stimuli.questionCards) {
-            this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "Q" }});
-        }
-        for (let c of stimSol.stimuli.answerCards) {
-            this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "A" }});
-        }
+        const all = stimSol.stimuli.questionCards.map((o: any) => ({ item: o, type: "Q"}))
+            .concat(stimSol.stimuli.answerCards.map((o: any) => ({ item: o, type: "A"})));
+        this._signals._addItems.dispatch({items:
+            all.map((o: any) => ({ id: "", x: o.item.location.x, y: o.item.location.y, text: o.item.svg, type: o.type }))});
+        // for (let c of stimSol.stimuli.questionCards) {
+        //     this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "Q" }});
+        // }
+        // for (let c of stimSol.stimuli.answerCards) {
+        //     this._signals._addItem.dispatch({item: { id: "", x: c.location.x, y: c.location.y, text: c.svg, type: "A" }});
+        // }
 
         return true;
     }

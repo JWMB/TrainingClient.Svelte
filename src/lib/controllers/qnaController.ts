@@ -1,6 +1,6 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
 import { SignalX0, type SignalX0Public } from "$lib/signals";
-import { GameSignalsBase, type GameController, type GameSignalsPublic } from "./gameController";
+import { GameSignalsBase, type GameController, type GameSignalsPublic, type Item } from "./gameController";
 
 export interface GameSignalsPublicQnA extends GameSignalsPublic {
     get clear(): SignalX0Public;
@@ -28,24 +28,40 @@ export class QnAController implements GameController {
             throw new Error("No stimulus");
         }
 
-        this._signals._addItem.dispatch({
-            item: {
+        let items: Item[] = [
+            {
                 id: "", x: 0, y: 0,
                 text: stimSol.stimuli.question,
                 type: "question"
             }
-        });
+        ];
         if (stimSol.stimuli.alternatives.length) {
-            (stimSol.stimuli.alternatives as string[]).forEach(v => {
-                this._signals._addItem.dispatch({
-                    item: { id: "", x: 1, y: 0, text: v, type: "alternative" }
-                });
-            });
+            items = items.concat(
+                (stimSol.stimuli.alternatives as string[]).map(o => ({ id: "", x: 1, y: 0, text: o, type: "alternative"}))
+            );
         } else {
-            this._signals._addItem.dispatch({
-                item: { id: "", x: 1, y: 0, text: "", type: "input" }
-            });
+            items = items.concat({id: "", x: 1, y: 0, text: "", type: "input"});
         }
+
+        this._signals._addItems.dispatch({ items: items });
+        // this._signals._addItem.dispatch({
+        //     item: {
+        //         id: "", x: 0, y: 0,
+        //         text: stimSol.stimuli.question,
+        //         type: "question"
+        //     }
+        // });
+        // if (stimSol.stimuli.alternatives.length) {
+        //     (stimSol.stimuli.alternatives as string[]).forEach(v => {
+        //         this._signals._addItem.dispatch({
+        //             item: { id: "", x: 1, y: 0, text: v, type: "alternative" }
+        //         });
+        //     });
+        // } else {
+        //     this._signals._addItem.dispatch({
+        //         item: { id: "", x: 1, y: 0, text: "", type: "input" }
+        //     });
+        // }
         
         return true;
     }

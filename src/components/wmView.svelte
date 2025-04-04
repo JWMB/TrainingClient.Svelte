@@ -19,7 +19,7 @@
 
         layout = typedController().itemLayout();
 
-        typedController().signals.addItem.add(arg => items.push({hilite: false, ...arg.item }));
+        typedController().signals.addItems.add(arg => items = arg.items.map(o => ({hilite: false, ...o })));
         typedController().signals.enable.add(arg => enabled = arg.value);
         typedController().signals.hilite.add(arg => getItem(arg.id).hilite = arg.on);
     });
@@ -27,7 +27,7 @@
     type WmItem = {
         id: string, hilite: boolean, x: number, y: number, type: string, text?: string 
     };
-    const items: WmItem[] = $state([]);
+    let items: WmItem[] = $state([]);
     let time: number = $state(0);
 
     let ramHandle:number = 0;

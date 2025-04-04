@@ -23,13 +23,16 @@
         // typedController().signals.clear.add(() => {
         //     alternatives = [];
         // });
-        typedController().signals.addItem.add(arg => {
-            // console.log("addItem", arg.item);
-            const card: Card = { id: parseInt(arg.item.id, 10), x: arg.item.x, y: arg.item.y, svg: arg.item.text || "" };
-            if (arg.item.type == "Q") {
-                questionCards.push(card);
-            } else {
-                answerCards.push(card);
+        typedController().signals.addItems.add(arg => {
+            // console.log("addItem", arg);
+            for (let item of arg.items) {
+                console.log("itemx", item.type);
+                const card: Card = { id: parseInt(item.id, 10), x: item.x, y: item.y, svg: item.text || "" };
+                if (item.type == "Q") {
+                    questionCards.push(card);
+                } else {
+                    answerCards.push(card);
+                }
             }
         });
         // typedController().signals.enable.add(arg => enabled = arg.value);

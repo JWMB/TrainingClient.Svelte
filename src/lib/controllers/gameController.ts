@@ -8,7 +8,7 @@ export interface GameController {
 }
 
 export type HiliteArgs = { id: string, on: boolean };
-export type AddItemArgs = { item: Item };
+export type AddItemArgs = { items: Item[] };
 export type EnableArgs = { value: boolean };
 export type ShowTextArgs = { value: string };
 export type UpdateLevelArgs = { current: number, top: number };
@@ -32,7 +32,7 @@ export interface GameSignalsPublic {
     get completed(): SignalX1Public<CompletedArgs>;
 
     get hilite(): SignalX1Public<HiliteArgs>;
-    get addItem(): SignalX1Public<AddItemArgs>;
+    get addItems(): SignalX1Public<AddItemArgs>;
 }
 export interface GameSignalsInternal {
     _levelUpdate: SignalX1<UpdateLevelArgs>;
@@ -42,7 +42,7 @@ export interface GameSignalsInternal {
     _completed: SignalX1<CompletedArgs>;
 
     _hilite: SignalX1<HiliteArgs>;
-    _addItem: SignalX1<AddItemArgs>;
+    _addItems: SignalX1<AddItemArgs>;
 }
 
 
@@ -59,8 +59,8 @@ export class GameSignalsBase implements GameSignalsPublic, GameSignalsInternal {
     _hilite = new SignalX1<HiliteArgs>();
     public get hilite() { return this._hilite.consumer; }
 
-    _addItem = new SignalX1<AddItemArgs>();
-    public get addItem() { return this._addItem.consumer; }
+    _addItems = new SignalX1<AddItemArgs>();
+    public get addItems() { return this._addItems.consumer; }
 
     _enable = new SignalX1<EnableArgs>();
     public get enable() { return this._enable.consumer; }

@@ -26,7 +26,6 @@
         typedController().signals.addItems.add(arg => {
             // console.log("addItem", arg);
             for (let item of arg.items) {
-                console.log("itemx", item.type);
                 const card: Card = { id: parseInt(item.id, 10), x: item.x, y: item.y, svg: item.text || "" };
                 if (item.type == "Q") {
                     questionCards.push(card);

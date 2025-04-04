@@ -21,15 +21,17 @@
         typedController().signals.clear.add(() => {
             alternatives = [];
         });
-        typedController().signals.addItem.add(arg => {
+        typedController().signals.addItems.add(arg => {
             // console.log("addItem", arg.item);
-            if (arg.item.type === "question") {
-                question = arg.item.text || "N/A";
-            } else if (arg.item.type === "alternative") {
-                alternatives.push(arg.item.text || "N/A");
-            } else if (arg.item.type === "input") {
-                answer = "";
-            } else {
+            for (let item of arg.items) {
+            if (item.type === "question") {
+                    question = item.text || "N/A";
+                } else if (item.type === "alternative") {
+                    alternatives.push(item.text || "N/A");
+                } else if (item.type === "input") {
+                    answer = "";
+                } else {
+                }
             }
         });
         // typedController().signals.enable.add(arg => enabled = arg.value);

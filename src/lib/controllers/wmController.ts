@@ -38,9 +38,6 @@ export class WMGridController implements WMController {
         }
 
         this._signals._addItems.dispatch({ items: this.createItems() });
-        // for (let item of this.createItems()) {
-        //     this._signals._addItem.dispatch({item: item});
-        // }
 
         this.updateLevelAndProgress(this.meta);
     }

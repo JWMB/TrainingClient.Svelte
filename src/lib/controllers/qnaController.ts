@@ -44,24 +44,6 @@ export class QnAController implements GameController {
         }
 
         this._signals._addItems.dispatch({ items: items });
-        // this._signals._addItem.dispatch({
-        //     item: {
-        //         id: "", x: 0, y: 0,
-        //         text: stimSol.stimuli.question,
-        //         type: "question"
-        //     }
-        // });
-        // if (stimSol.stimuli.alternatives.length) {
-        //     (stimSol.stimuli.alternatives as string[]).forEach(v => {
-        //         this._signals._addItem.dispatch({
-        //             item: { id: "", x: 1, y: 0, text: v, type: "alternative" }
-        //         });
-        //     });
-        // } else {
-        //     this._signals._addItem.dispatch({
-        //         item: { id: "", x: 1, y: 0, text: "", type: "input" }
-        //     });
-        // }
         
         return true;
     }

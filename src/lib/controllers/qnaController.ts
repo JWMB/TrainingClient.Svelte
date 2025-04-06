@@ -17,10 +17,20 @@ export class QnAController implements GameController {
     constructor(protected api: ApiWrapper) { }
 
     async init() {
-        const enterPhaseResultEx = await this.api.enterPhase();
+        const configurables = await this.api.getConfigurables();
+        await this.reload();
+    }
+
+    async reload(dataUrl?: string ) {
+        let config: object | undefined = undefined; 
+        if (dataUrl) {
+            config = { source: dataUrl };
+        }
+        const enterPhaseResultEx = await this.api.enterPhase(config);
         if (enterPhaseResultEx) {
         }
     }
+
     async start() {
         const stimSol = await this.api.nextStimuliAndSolution();
         // console.log("stims", stimSol);

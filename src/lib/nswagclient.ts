@@ -193,6 +193,7 @@ export class ApiClient {
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
+        console.log("enn", content_, body);
 
         let options_: RequestInit = {
             body: content_,
@@ -467,7 +468,7 @@ export interface IEndCriteriaData {
 }
 
 export class EnterGameResult implements IEnterGameResult {
-    configurable?: Type | undefined;
+    hasConfigurables!: boolean;
 
     [key: string]: any;
 
@@ -486,7 +487,7 @@ export class EnterGameResult implements IEnterGameResult {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.configurable = _data["configurable"] ? Type.fromJS(_data["configurable"]) : <any>undefined;
+            this.hasConfigurables = _data["hasConfigurables"];
         }
     }
 
@@ -503,13 +504,13 @@ export class EnterGameResult implements IEnterGameResult {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["configurable"] = this.configurable ? this.configurable.toJSON() : <any>undefined;
+        data["hasConfigurables"] = this.hasConfigurables;
         return data;
     }
 }
 
 export interface IEnterGameResult {
-    configurable?: Type | undefined;
+    hasConfigurables: boolean;
 
     [key: string]: any;
 }
@@ -1608,50 +1609,6 @@ export class StimuliAndSolution implements IStimuliAndSolution {
 export interface IStimuliAndSolution {
     stimuli: IStimuli;
     solution?: ISolution | undefined;
-
-    [key: string]: any;
-}
-
-export class Type implements IType {
-
-    [key: string]: any;
-
-    constructor(data?: IType) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-        }
-    }
-
-    static fromJS(data: any): Type {
-        data = typeof data === 'object' ? data : {};
-        let result = new Type();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        return data;
-    }
-}
-
-export interface IType {
 
     [key: string]: any;
 }

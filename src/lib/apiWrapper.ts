@@ -38,7 +38,8 @@ export class ApiWrapper {
 
 	async getAvailableActivities() { return await this.call(() =>this.client.availableGames()); }
 	async enterGame(gameId: string) { return await this.call(() =>this.client.enterGame(gameId)); }
-	async enterPhase() { return await this.call(() => this.client.enterPhase(null)); }
+	async enterPhase(config?: object) { return await this.call(() => this.client.enterPhase(config)); }
+	async getConfigurables() { return await this.call(() => this.client.configurables())};
 	async nextStimuli() { return await this.call(() => this.client.nextStimuli()); }
 	async nextStimuliAndSolution() { return await this.call(() => this.client.nextStimuliAndSolution()); }
 	async registerResponse(response: any) { return await this.call(() => this.client.responseExtended(response)); }

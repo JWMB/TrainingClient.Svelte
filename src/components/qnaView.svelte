@@ -1,11 +1,15 @@
 <script lang="ts">
 	import type { QnAController } from "$lib/controllers/qnaController";
 	import { onMount } from "svelte";
+	import Dropdown from "./dropdown.svelte";
 
     let { controller }: 
     { controller: QnAController | null, } = $props();
 
     function typedController() { return controller as QnAController; }
+
+    let dataUrl: string = $state("https://localhost/abc.tsv");
+    let dataUrls = [ "https://google.com" ];
 
     let question: string = $state("");
     let alternatives: string[] = $state([]);
@@ -37,6 +41,12 @@
         // typedController().signals.enable.add(arg => enabled = arg.value);
     });
 
+    const load = () => { 
+        //console.log("data", dataUrl);
+        if (dataUrl) {
+            controller?.reload(dataUrl);
+        }
+     };
     const respond = (answer: string) => typedController().respond(answer);
     const onKeydown = (key: string) => {
         if (key === "Enter") {
@@ -47,6 +57,10 @@
 </script>
 
 <div>
+    <div>
+        <Dropdown bind:value={dataUrl} alternatives={dataUrls}></Dropdown>
+        <input type="button" value="Load" onclick={load} />
+    </div>
     <div>
         <br/>
         Here is the question:

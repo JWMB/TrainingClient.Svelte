@@ -11,7 +11,7 @@
 	// let api = getApi();
 	let api = ServiceProvider.instance.apiWrapper;
 	onMount(async () => {
-		activities = await api.getAvailableActivities();
+		activities = (await api.getAvailableActivities()) || [];
 		console.log('activities', activities);
 	});
 

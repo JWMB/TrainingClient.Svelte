@@ -36,16 +36,10 @@
 		duration: animationDuration,
 		delay: animationDelay
     });
-	// let currentValue = tweened(initialAnimation ? 0 : value, {
-	// 	duration: animationDuration,
-	// 	delay: animationDelay
-	// });
 
-	// $: currentValue.set(value);
     $effect(() => { currentValue.set(value); });
 
     let steps = $derived(getSteps(value, 0, max));
-	// $: steps = getSteps(value, 0, max);
 	function getSteps(currentValue: number, min: number, max: number) {
 		const list: number[] = [];
 		for (let i = min; i < max; i += stepSize) {
@@ -58,7 +52,6 @@
 	}
 
     let valueString = $derived(getString(value, max, prefix, suffix, decimals, showValueAs));
-	// $: valueString = getString(value, max, prefix, suffix, decimals, showValueAs);
 	function getString(
 		value: number,
 		max: number,
@@ -81,7 +74,6 @@
 		}
 	}
 
-	// $: percentage = getPercentage($currentValue - min, max - min);
     let percentage = $derived(getPercentage(currentValue.current - min, max - min));
 	function getPercentage(value: number, max: number) {
 		return (value / max) * 100 || 0;

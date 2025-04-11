@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ProgressBar from "./progressBar.svelte";
+	import DavidProgress from "./davidProgress.svelte";
 
     let { 
         current = 4,
@@ -11,11 +11,10 @@
         top: number
     } = $props();
 
-    let fraction = $derived(current / (Math.max(top, current + 1)));
+    // let fraction = $derived(current / (Math.max(top, current + 1)));
 </script>
 
 <div>
-    Level:{current}
-    <ProgressBar value={fraction} color="pink"></ProgressBar>
+    <DavidProgress value={current} min={0} max={Math.ceil(Math.max(top, current + 1))} suffix="" showValueAs="OnlyValue" ></DavidProgress>
 </div>
 

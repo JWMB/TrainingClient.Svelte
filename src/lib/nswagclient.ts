@@ -193,7 +193,6 @@ export class ApiClient {
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
-        console.log("enn", content_, body);
 
         let options_: RequestInit = {
             body: content_,

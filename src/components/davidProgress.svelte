@@ -14,22 +14,7 @@
         initialAnimation = true,
         showSteps = true,
         stepSize = 1,
-        showValueAs = "All"
-    }: {
-        value: number,
-        animationDelay: number,
-        animationDuration: number,
-        min: number,
-        max: number,
-        prefix: string,
-        suffix: string,
-        decimals: number,
-        color: string,
-        height: number,
-        initialAnimation: boolean,
-        showSteps: boolean,
-        stepSize: number,
-        showValueAs: 'All' | 'Percentage' | 'OnlyValue' | 'ValueWithSuffix' | 'None'
+        showValueAs = "All" as 'All' | 'Percentage' | 'OnlyValue' | 'ValueWithSuffix' | 'None'
     } = $props();
 
     let currentValue = new Tween(initialAnimation ? 0 : value, {
@@ -81,11 +66,11 @@
 </script>
 
 <div class="progress-bar" style:--progress-height={height + 'px'}>
-	<div class="background" />
-	<div class="progress" style:--progress-color={color} style:width={percentage + '%'} />
+	<div class="background" ></div>
+	<div class="progress" style:--progress-color={color} style:width={percentage + '%'} ></div>
 	{#if showSteps}
 		{#each steps as step}
-			<div class="step" style:left="{step * 100}%" />
+			<div class="step" style:left="{step * 100}%" ></div>
 		{/each}
 	{/if}
 	<div class="value">{valueString}</div>

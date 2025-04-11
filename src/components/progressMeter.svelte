@@ -11,7 +11,7 @@
         end: number
     } = $props();
 
-    const colors = ["blue", "red", "green" ];
+    const colors = ["green", "magenta", "red" ];
     let bars = $derived([target, fail, end].map((o, i) => (o > 0 || i == 0) ? { value: o, color: colors[i] } : null).filter(o => !!o))
 
 </script>

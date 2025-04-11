@@ -12,7 +12,7 @@
 	let api = ServiceProvider.instance.apiWrapper;
 	onMount(async () => {
 		activities = (await api.getAvailableActivities()) || [];
-		console.log('activities', activities);
+		// console.log('activities', activities);
 	});
 
 	function onStartActivity(activityId: string) {

@@ -13,7 +13,6 @@
 	let filteredItems: string[] = $state([]);
 	
     inputValue = value;
-    //console.log("Aas", inputValue, alternatives);
 
 	const handleInput = () => {
         const filtered = alternatives.filter(item => item.toLowerCase().match(inputValue.toLowerCase()));
@@ -39,9 +38,9 @@
             {/each}
         {/if}
     </div>	
-  </section>
+</section>
 
-  <style>		
+<style>		
     .dropdown {
       position: relative;
       display: inline-block;
@@ -57,4 +56,4 @@
     }
     
     .show {display:block;}	
-    </style>
+</style>

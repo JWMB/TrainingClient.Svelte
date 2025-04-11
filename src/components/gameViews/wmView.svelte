@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { type ItemLayoutFunctions, type WMController } from "$lib/controllers/wmController";
 	import { onDestroy, onMount, type Component } from "svelte";
-	import SvgCircleButton from "./svgCircleButton.svelte";
-	import SvgNumberButton from "./svgNumberButton.svelte";
+	import SvgCircleButton from "../svgCircleButton.svelte";
+	import SvgNumberButton from "../svgNumberButton.svelte";
 
     let { controller }: {
         controller: WMController | null,

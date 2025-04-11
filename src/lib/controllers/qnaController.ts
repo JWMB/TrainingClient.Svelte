@@ -16,8 +16,18 @@ export class QnAController implements GameController {
 
     constructor(protected api: ApiWrapper) { }
 
+    private _previousDataUrls: string[] = []; 
+    get previousDataUrls() { return this._previousDataUrls; }
+
     async init() {
         const configurables = await this.api.getConfigurables();
+        if (typeof configurables === "object") {
+            const c = <any>configurables;
+            const urls = c.properties?.Source?.enum as string[];
+            if (urls?.length > 0) {
+                this._previousDataUrls = urls.filter(o => o.length && o != "*");
+            }
+        }
         await this.reload();
     }
 

@@ -1,15 +1,18 @@
 <script lang="ts">
 	import type { QnAController } from "$lib/controllers/qnaController";
 	import { onMount } from "svelte";
-	import Dropdown from "./dropdown.svelte";
+	import Dropdown from "../dropdown.svelte";
 
     let { controller }: 
     { controller: QnAController | null, } = $props();
 
     function typedController() { return controller as QnAController; }
 
-    let dataUrl: string = $state("https://localhost/abc.tsv");
-    let dataUrls = [ "https://google.com" ];
+    // let dataUrl: string = $state("https://localhost/abc.tsv");
+    // let dataUrls = [ "https://google.com" ];
+    let dataUrl: string = $state("");
+    let dataUrls = typedController().previousDataUrls;
+    console.log("SdataUrls", dataUrls);
 
     let question: string = $state("");
     let alternatives: string[] = $state([]);

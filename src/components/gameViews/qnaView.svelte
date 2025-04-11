@@ -11,8 +11,7 @@
     // let dataUrl: string = $state("https://localhost/abc.tsv");
     // let dataUrls = [ "https://google.com" ];
     let dataUrl: string = $state("");
-    let dataUrls = typedController().previousDataUrls;
-    console.log("SdataUrls", dataUrls);
+    let dataUrls: string[] = $state([]);
 
     let question: string = $state("");
     let alternatives: string[] = $state([]);
@@ -25,6 +24,10 @@
             return;
         }
 
+        typedController().signals.init.add(() => {
+            dataUrls = typedController().previousDataUrls;
+            // console.log("SdataUrls", dataUrls);
+        });
         typedController().signals.clear.add(() => {
             alternatives = [];
         });

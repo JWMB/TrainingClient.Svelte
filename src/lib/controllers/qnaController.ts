@@ -4,10 +4,14 @@ import { GameSignalsBase, type GameController, type GameSignalsPublic, type Item
 
 export interface GameSignalsPublicQnA extends GameSignalsPublic {
     get clear(): SignalX0Public;
+    get init(): SignalX0Public;
 }
 export class GameSignalsQnA extends GameSignalsBase implements GameSignalsPublicQnA {
     _clear = new SignalX0();
     get clear() { return this._clear.consumer; };
+
+    _init = new SignalX0();
+    get init() { return this._init.consumer; };
 }
 
 export class QnAController implements GameController {
@@ -26,6 +30,9 @@ export class QnAController implements GameController {
             const urls = c.properties?.Source?.enum as string[];
             if (urls?.length > 0) {
                 this._previousDataUrls = urls.filter(o => o.length && o != "*");
+                // console.log("this._previousDataUrls", this._previousDataUrls);
+            } else {
+                console.warn("no urls in configurables", configurables);
             }
         }
         await this.reload();
@@ -39,6 +46,7 @@ export class QnAController implements GameController {
         const enterPhaseResultEx = await this.api.enterPhase(config);
         if (enterPhaseResultEx) {
         }
+        this._signals._init.dispatch();
     }
 
     async start() {

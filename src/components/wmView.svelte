@@ -80,7 +80,6 @@
 </script>
 
 <div>
-    <div>{components.length}</div>
     <div>
         <svg viewBox="0 0 100 100" height="300px" style="filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7))">
         {#each components as c}

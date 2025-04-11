@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ProgressBar from "./progressBar.svelte";
 
     let { 
         current = 4,
@@ -10,9 +11,11 @@
         top: number
     } = $props();
 
+    let fraction = $derived(current / (Math.max(top, current + 1)));
 </script>
 
 <div>
-    Level:{current} (max:{top})
+    Level:{current}
+    <ProgressBar value={fraction} color="pink"></ProgressBar>
 </div>
 

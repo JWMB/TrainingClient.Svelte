@@ -72,8 +72,12 @@
 </script>
 
 
-<LevelMeter current={levelInfo.current} top={levelInfo.top}></LevelMeter>
-<ProgressMeter target={progressInfo.target} fail={progressInfo.fail} end={progressInfo.end} ></ProgressMeter>
+<div style="width:200px;height:50px">
+	<LevelMeter current={levelInfo.current} top={levelInfo.top}></LevelMeter>
+</div>
+<div style="width:200px;height:20px">
+	<ProgressMeter target={progressInfo.target} fail={progressInfo.fail} end={progressInfo.end} ></ProgressMeter>
+</div>
 
 {#each components as item}
 	<item.component {...item} />

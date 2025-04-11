@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount, type Component } from "svelte";
-	import WmView from "../../../components/wmView.svelte";
+	import WmView from "../../../components/gameViews/wmView.svelte";
 	import { ServiceProvider } from "$lib/serviceProvider";
 	import { WMCircleController, WMGridController, WMMovingController, WMNumbersController } from "$lib/controllers/wmController";
 	import LevelMeter from "../../../components/levelMeter.svelte";
 	import ProgressMeter from "../../../components/progressMeter.svelte";
 	import { QnAController } from "$lib/controllers/qnaController";
-	import QnaView from "../../../components/qnaView.svelte";
+	import QnaView from "../../../components/gameViews/qnaView.svelte";
 	import { type GameController, type UpdateLevelArgs, type UpdateProgressArgs } from "$lib/controllers/gameController";
-	import { setBackground } from "$lib/utils";
+	// import { setBackground } from "$lib/utils";
 	import { NVRController } from "$lib/controllers/nvrController";
-	import NvrView from "../../../components/nvrView.svelte";
+	import NvrView from "../../../components/gameViews/nvrView.svelte";
 
 	let api = ServiceProvider.instance.apiWrapper;
 

@@ -50,7 +50,8 @@
     const load = () => { 
         //console.log("data", dataUrl);
         if (dataUrl) {
-            controller?.reload(dataUrl);
+            controller?.reload(dataUrl)
+                .then(() => controller?.start());
         }
      };
     const respond = (answer: string) => typedController().respond(answer);

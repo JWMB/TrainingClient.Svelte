@@ -14,6 +14,12 @@ export class GameSignalsQnA extends GameSignalsBase implements GameSignalsPublic
     get init() { return this._init.consumer; };
 }
 
+export type QnAAlternative = {
+    text?: string;
+    image?: string;
+    sound?: string;
+}
+
 export class QnAController implements GameController {
     private _signals = new GameSignalsQnA();
     get signals(): GameSignalsPublicQnA { return this._signals; }
@@ -50,6 +56,9 @@ export class QnAController implements GameController {
     }
 
     async start() {
+        this._signals._clear.dispatch();
+
+        console.log("get next", Date.now());
         const stimSol = await this.api.nextStimuliAndSolution();
         // console.log("stims", stimSol);
         if (!stimSol) {
@@ -59,13 +68,13 @@ export class QnAController implements GameController {
         let items: Item[] = [
             {
                 id: "", x: 0, y: 0,
-                text: stimSol.stimuli.question,
+                text: (stimSol.stimuli.question as QnAAlternative).text,
                 type: "question"
             }
         ];
         if (stimSol.stimuli.alternatives.length) {
             items = items.concat(
-                (stimSol.stimuli.alternatives as string[]).map(o => ({ id: "", x: 1, y: 0, text: o, type: "alternative"}))
+                (stimSol.stimuli.alternatives as QnAAlternative[]).map(o => ({ id: "", x: 1, y: 0, text: o.text, type: "alternative"}))
             );
         } else {
             items = items.concat({id: "", x: 1, y: 0, text: "", type: "input"});

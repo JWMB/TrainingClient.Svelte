@@ -1,13 +1,16 @@
 import { ApiClient } from "./nswagclient";
 
 export class ApiWrapper {
-	static instance: ApiWrapper;
+	private static instance: ApiWrapper;
 
 	private client: ApiClient;
 
 	constructor(private baseUrl: string) {
-		if (ApiWrapper.instance) {
-			throw new Error('ApiWrapper already instantiated');
+		if (ApiWrapper.instance != null) {
+			console.error("ApiWrapper already instantiated");
+			this.client = new ApiClient("");
+			return;
+			// throw new Error('ApiWrapper already instantiated');
 		}
 		ApiWrapper.instance = this;
 

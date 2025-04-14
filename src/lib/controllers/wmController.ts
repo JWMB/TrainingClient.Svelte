@@ -3,6 +3,7 @@ import type { CommandApi } from "$lib/commandApis/commandApi";
 import { CommandApiProxyWM } from "$lib/commandApis/commandApiProxyWM";
 import { Meta } from "$lib/nswagclient";
 import { CommandSequenceExecuter, type Cmd } from "$lib/presentationCommands";
+import { ServiceProvider } from "$lib/serviceProvider";
 import { GameSignalsBase, type GameController, type GameSignalsPublic, type Item } from "./gameController";
 
 export interface WMController extends GameController {
@@ -52,6 +53,7 @@ export class WMGridController implements WMController {
     }
 
     async start() {
+        this.clickedIds = [];
         const stim = await this.proxyApi.getStimulus();
         if (!stim) {
             this._signals._completed.dispatch({ });
@@ -88,8 +90,12 @@ export class WMGridController implements WMController {
         }
     }
 
+    private clickedIds: string[] = [];
     click(id: string) {
-        this._signals._enable.dispatch({ value: false})
+        this.clickedIds.push(id);
+
+        ServiceProvider.instance.audio.play("/src/static/memory_1.mp3", { pitch: 1 + (this.clickedIds.length - 1) / 5 });
+        this._signals._enable.dispatch({ value: false});
         for (let item of this.createItems())
             this._signals._hilite.dispatch({ id: item.id.toString(), on: false})
 

@@ -1,17 +1,24 @@
 import type { ApiWrapper } from "$lib/apiWrapper";
-import { SignalX0, type SignalX0Public } from "$lib/signals";
+import { SignalX0, SignalX1, SignalX1Public, type SignalX0Public } from "$lib/signals";
 import { GameSignalsBase, type GameController, type GameSignalsPublic, type Item } from "./gameController";
 
+export type AddItemsXArgs<T> = { items: T[] };
+export type XItem = { text?: string, image?: string, sound?: string, type: "question" | "alternative" | "input" };
 export interface GameSignalsPublicQnA extends GameSignalsPublic {
     get clear(): SignalX0Public;
     get init(): SignalX0Public;
+    get addItemsX(): SignalX1Public<AddItemsXArgs<XItem>>;
 }
+
 export class GameSignalsQnA extends GameSignalsBase implements GameSignalsPublicQnA {
     _clear = new SignalX0();
     get clear() { return this._clear.consumer; };
 
     _init = new SignalX0();
     get init() { return this._init.consumer; };
+
+    _addItemsX = new SignalX1<AddItemsXArgs<XItem>>();
+    public get addItemsX() { return this._addItemsX.consumer; }
 }
 
 export type QnAAlternative = {
@@ -65,22 +72,25 @@ export class QnAController implements GameController {
             throw new Error("No stimulus");
         }
 
-        let items: Item[] = [
+        let items: XItem[] = [
             {
-                id: "", x: 0, y: 0,
+                // id: "", x: 0, y: 0,
                 text: (stimSol.stimuli.question as QnAAlternative).text,
                 type: "question"
             }
         ];
         if (stimSol.stimuli.alternatives.length) {
+            // console.log("qq", (stimSol.stimuli.alternatives as any[]).map(o => o as QnAAlternative).map(o => `${o?.image}`));
             items = items.concat(
-                (stimSol.stimuli.alternatives as QnAAlternative[]).map(o => ({ id: "", x: 1, y: 0, text: o.text, type: "alternative"}))
+                (stimSol.stimuli.alternatives as QnAAlternative[]).map(o => ({
+                    text: o.text, image: o.image, sound: o.sound, type: "alternative"
+                })) //id: "", x: 1, y: 0, 
             );
         } else {
-            items = items.concat({id: "", x: 1, y: 0, text: "", type: "input"});
+            items = items.concat({text: "", type: "input"}); // id: "", x: 1, y: 0, 
         }
 
-        this._signals._addItems.dispatch({ items: items });
+        this._signals._addItemsX.dispatch({ items: items });
         
         return true;
     }

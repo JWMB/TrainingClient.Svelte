@@ -84,16 +84,20 @@
         <h2>{question}</h2>
     </div>
 
-    <div>
+    <div style="display: block; max-width:200px">
         {#each alternatives as alt}
-            <button class="button-62" onclick={() => respond(alt.text)}>{alt.text || "N/A"}</button>  
-            {#if alt.image?.length}
-                {#if alt.image.indexOf("<svg") === 0}
-                    <div style="width:40px;height:40px">
-                        {@html alt.image}
-                    </div>
+            <div style="flex: 1">
+                <span>
+                <button class="button-62" onclick={() => respond(alt.text)}>{alt.text || "N/A"}</button>  
+                {#if alt.image?.length}
+                    {#if alt.image.indexOf("<svg") === 0}
+                        <div style="width:40px;height:40px;float:right">
+                            {@html alt.image}
+                        </div>
+                    {/if}
                 {/if}
-            {/if}
+                </span>
+            </div>
         {/each}
         {#if alternatives.length === 0}
             <input onkeydown={e => onKeydown(e.key)} type="text" bind:value={answer}/>

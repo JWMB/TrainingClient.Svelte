@@ -1,4 +1,4 @@
-import { UserSessionApiClient, AccountApiClient } from "./nswagclient";
+import { UserSessionApiClient, AccountApiClient, ApiException } from "./nswagclient";
 
 export class ApiWrapper {
 	private static instance: ApiWrapper;
@@ -20,9 +20,6 @@ export class ApiWrapper {
 	async login(username: string) {
 		const accountClient = new AccountApiClient(this.baseUrl, { fetch: (url, init) => fetch(url, init)});
 		const result = await accountClient.login(username);
-		// const result = await this.callWithErrorMessage(
-		// 	async () => await this.client.login(username)
-		// );
 		if (!result.sessionId) {
 			throw new Error('No sessionId provided');
 		}
@@ -41,8 +38,8 @@ export class ApiWrapper {
 		return result;
 	}
 
-	async getAvailableActivities() { return await this.call(() =>this.client.availableGames()); }
-	async enterGame(gameId: string) { return await this.call(() =>this.client.enterGame(gameId)); }
+	async getAvailableActivities() { return await this.call(() => this.client.availableGames()); }
+	async enterGame(gameId: string) { return await this.call(() => this.client.enterGame(gameId)); }
 	async enterPhase(config?: object) { return await this.call(() => this.client.enterPhase(config)); }
 	async getConfigurables() { return await this.call(() => this.client.configurables())};
 	async nextStimuli() { return await this.call(() => this.client.nextStimuli()); }
@@ -50,7 +47,12 @@ export class ApiWrapper {
 	async registerResponse(response: any) { return await this.call(() => this.client.responseExtended(response)); }
 
 	protected async call<T>(someCall: () => T | undefined) {
-		return await someCall();
+		try {
+			return await someCall();
+		} catch (err) {
+			//console.log("WWW", JSON.stringify(err));
+			throw err;
+		}
 	}
 	protected async callWithErrorMessage<T>(somecall: () => T | undefined, errorMessage?: string) {
 		const result = await somecall();
@@ -68,16 +70,40 @@ export class ApiWrapperAutologin extends ApiWrapper {
 		super(baseUrl);
 		this.username = defaultUsername;
 	}
+	
 	override async login(username: string) {
 		const result = await super.login(username);
 		this.sessionId = result.sessionId;
 		return result;
 	}
+
 	protected override async call<T>(someCall: () => T | undefined) {
 		if (this.sessionId == null && this.username) {
 			await this.login(this.username);
 		}
-		return await someCall();
+
+		try {
+			//return super.call(() => someCall());
+			return await someCall();
+		} catch (err) {
+			const parseError = (e: any) => {
+				if (e instanceof ApiException) return e;
+				if (typeof e !== "object") return { message: JSON.stringify(e), status: 0 };
+				if (typeof e.status === "number") {
+					return { message: e.message as string, status: e.status };
+				}
+				return null;
+			};
+
+			const e2 = parseError(err);
+			if (e2?.status == 403 || e2?.status == 401) {
+				if (this.username) {
+					await this.login(this.username);
+					return await someCall();
+				}
+			}
+			throw err;
+		}
 	}
 }
 

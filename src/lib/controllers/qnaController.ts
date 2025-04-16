@@ -58,7 +58,7 @@ export class QnAController implements GameController {
     async start() {
         this._signals._clear.dispatch();
 
-        console.log("get next", Date.now());
+        // console.log("get next", Date.now());
         const stimSol = await this.api.nextStimuliAndSolution();
         // console.log("stims", stimSol);
         if (!stimSol) {

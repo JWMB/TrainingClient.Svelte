@@ -42,6 +42,6 @@ export class ServiceProvider {
     private _audio: AudioMgr;
     get audio() { return this._audio; }
 
-    private _apiWrapper?: ApiWrapper;
+    private _apiWrapper: ApiWrapper;
     get apiWrapper() { return this._apiWrapper; }
 }

@@ -6,8 +6,11 @@ export class AudioMgr {
     private preloaded: Map<string, AudioBuffer>;
 
     constructor() {
-        if (AudioMgr._instance) throw new Error("Audio singleton");
-        AudioMgr._instance = this;
+        if (AudioMgr._instance) {
+            console.error("Audio singleton - why reinitialied?"); //throw new Error("Audio singleton");
+        } else {
+            AudioMgr._instance = this;
+        }
 
         this.preloaded = new Map<string, AudioBuffer>();
     }

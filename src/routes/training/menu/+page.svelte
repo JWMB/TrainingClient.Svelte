@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../../../app.css';
 	import { goto } from '$app/navigation';
 	// import { getApi } from '$lib/apiWrapper';
 	import type { GameDefinition } from '$lib/nswagclient';
@@ -22,7 +23,7 @@
 
 <h1>Menu</h1>
 {#each activities as activity}
-	<button onclick={() => onStartActivity(activity.id || 'unknown')}
+	<button class="button-62" onclick={() => onStartActivity(activity.id || 'unknown')}
 		>{activity.title || 'unknown'}</button
 	>
 {/each}

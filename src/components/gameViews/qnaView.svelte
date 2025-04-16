@@ -77,7 +77,7 @@
     <div>
         <div>Your answer:</div>
         {#each alternatives as alt}
-            <button onclick={() => respond(alt)}>{alt}</button>         
+            <button class="button-62" onclick={() => respond(alt)}>{alt}</button>         
         {/each}
         {#if alternatives.length === 0}
             <input onkeydown={e => onKeydown(e.key)} type="text" bind:value={answer}/>

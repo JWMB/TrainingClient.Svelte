@@ -1,5 +1,4 @@
 <script lang="ts">
-	import '../../../app.css';
 	import { goto } from '$app/navigation';
 	// import { getApi } from '$lib/apiWrapper';
 	import type { GameDefinition } from '$lib/nswagclient';

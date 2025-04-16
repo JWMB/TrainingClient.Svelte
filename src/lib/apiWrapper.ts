@@ -1,31 +1,33 @@
-import { ApiClient } from "./nswagclient";
+import { UserSessionApiClient, AccountApiClient } from "./nswagclient";
 
 export class ApiWrapper {
 	private static instance: ApiWrapper;
 
-	private client: ApiClient;
+	private client: UserSessionApiClient;
 
 	constructor(private baseUrl: string) {
 		if (ApiWrapper.instance != null) {
 			console.error("ApiWrapper already instantiated");
-			this.client = new ApiClient("");
+			this.client = new UserSessionApiClient("");
 			return;
 			// throw new Error('ApiWrapper already instantiated');
 		}
 		ApiWrapper.instance = this;
 
-		this.client = new ApiClient(this.baseUrl, { fetch: (url, init) => fetch(url, init)});
+		this.client = new UserSessionApiClient(this.baseUrl, { fetch: (url, init) => fetch(url, init)});
 	}
 
 	async login(username: string) {
-		const result = await this.callWithErrorMessage(
-			async () => await this.client.login(username)
-		);
+		const accountClient = new AccountApiClient(this.baseUrl, { fetch: (url, init) => fetch(url, init)});
+		const result = await accountClient.login(username);
+		// const result = await this.callWithErrorMessage(
+		// 	async () => await this.client.login(username)
+		// );
 		if (!result.sessionId) {
 			throw new Error('No sessionId provided');
 		}
 
-		this.client = new ApiClient(this.baseUrl, { 
+		this.client = new UserSessionApiClient(this.baseUrl, { 
             fetch: (url, init) => {
                 if (!init) init = {};
 				const headers = init?.headers ? new Headers(init.headers) : new Headers();

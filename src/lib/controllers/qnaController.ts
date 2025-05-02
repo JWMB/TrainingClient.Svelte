@@ -76,6 +76,8 @@ export class QnAController implements GameController {
             {
                 // id: "", x: 0, y: 0,
                 text: (stimSol.stimuli.question as QnAAlternative).text,
+                image: (stimSol.stimuli.question as QnAAlternative).image,
+                sound: (stimSol.stimuli.question as QnAAlternative).sound,
                 type: "question"
             }
         ];

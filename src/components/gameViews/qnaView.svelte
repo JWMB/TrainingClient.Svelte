@@ -2,6 +2,7 @@
 	import type { QnAController, XItem } from "$lib/controllers/qnaController";
 	import { onMount } from "svelte";
 	import Dropdown from "../dropdown.svelte";
+	import QnaAlternative from "./qnaAlternative.svelte";
 
     let { controller }: 
     { controller: QnAController | null, } = $props();
@@ -15,6 +16,7 @@
 
     let question: string = $state("");
     let alternatives: XItem[] = $state([]);
+    let questionItem: XItem | null = $state(null);
 
     let answer: string = $state("");
 
@@ -44,9 +46,12 @@
                             svg.setAttribute("height", "100%");
                             item.image = svg.outerHTML;
                         }
+                    } else if (item.image.indexOf("data:image") === 0) {
+                        console.log("base64 image");
                     }
                 }
                 if (item.type === "question") {
+                    questionItem = item;
                     question = item.text || "N/A";
                 } else if (item.type === "alternative") {
                     alternatives.push(item); //item.text || "N/A");
@@ -82,21 +87,25 @@
     </div>
     <div>
         <h2>{question}</h2>
+        <QnaAlternative item={questionItem}></QnaAlternative>
     </div>
 
     <div style="display: block; max-width:200px">
         {#each alternatives as alt}
-            <div style="flex: 1">
-                <span>
-                <button class="button-62" onclick={() => respond(alt.text)}>{alt.text || "N/A"}</button>  
+        <div style="flex: 1">
+            <button class="button-62" onclick={() => respond(alt.text)}>{alt.text || "N/A"}</button>  
+            <QnaAlternative item={alt}></QnaAlternative>
+                <!-- <span>
                 {#if alt.image?.length}
                     {#if alt.image.indexOf("<svg") === 0}
                         <div style="width:40px;height:40px;float:right">
                             {@html alt.image}
                         </div>
+                    {:else if (alt.image.indexOf("data:image") === 0)}
+                        <img src={alt.image} />
                     {/if}
                 {/if}
-                </span>
+                </span> -->
             </div>
         {/each}
         {#if alternatives.length === 0}
